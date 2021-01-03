@@ -163,7 +163,7 @@ class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
     def test_greater_than(self):
 
         #
-        # edge cases
+        # specific/edge cases
         #
         self.assertTrue(greater_than_or_equal_to([1],[0]))
         self.assertTrue(greater_than_or_equal_to([1,2,3],[0]))
@@ -194,7 +194,7 @@ class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
     def test_less_than(self):
 
         #
-        # edge cases
+        # specific/edge cases
         #
         self.assertFalse(greater_than_or_equal_to([0],[1]))
         self.assertFalse(greater_than_or_equal_to([0],[1,2,3]))
@@ -226,7 +226,7 @@ class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
     def test_equal_to(self):
 
         #
-        # edge cases
+        # specific/edge cases
         #
         self.assertTrue(greater_than_or_equal_to([0],[0]))
         self.assertTrue(greater_than_or_equal_to([0,0,0,0],[0]))
@@ -295,7 +295,7 @@ class TestAddFunctions(unittest.TestCase):
     def test_add(self):
 
         #
-        # edge cases
+        # specific/edge cases
         #
         self.assertEqual(add([0],[0]),[0])
         self.assertEqual(add([0,0,0,0],[0]),[0])
@@ -396,7 +396,7 @@ class TestSubFunctions(unittest.TestCase):
     def test_sub(self):
 
         #
-        # edge cases
+        # specific/edge cases
         #
         self.assertEqual(sub([0],[0]),[0])
         self.assertEqual(sub([0,0,0,0],[0]),[0])

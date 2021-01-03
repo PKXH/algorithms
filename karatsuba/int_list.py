@@ -11,8 +11,9 @@ import random
 
 # ********************************************************************** 
 '''
-Convert the argument into a list of integer digits if it is an integer,
-or leave it alone if it is already a list
+Convert an arbitrary-lengthed integer argument into a list of value 0-9 
+integer digits, or simply return the input untouched if it is already a 
+list
 '''
 def listify(x):
 
@@ -27,8 +28,8 @@ def listify(x):
     return x
 
 '''
-Convert the list of digits into the integer obtained by concatenating
-the list's digits
+Convert the list of value 0-9 integer digits into the integer obtained 
+by concatenating the list's digits
 '''
 def delistify(x):
 
@@ -120,7 +121,9 @@ class TestVectorListifyFunctions(unittest.TestCase):
 
 # ********************************************************************** 
 '''
-Return a>=b for digit lists
+Return a>=b boolean value if a and b are arbitrary-lengthed integer
+lists (ex: the integer 123 is rerresented by the integer digit list 
+[1,2,3])
 '''
 def greater_than_or_equal_to(a, b):
 
@@ -253,7 +256,8 @@ class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
 
 # ********************************************************************** 
 '''
-add two non-negative int lists
+This function returns the sum (in integer list form) of two non-negative 
+integer lists
 '''
 def add(a, b):
 
@@ -324,7 +328,8 @@ class TestAddFunctions(unittest.TestCase):
 
 # **********************************************************************
 '''
-subtract two non-negative int lists, requiring a>=b
+This function returns the difference (in integer list form) of two
+non-negative integer lists, with the requirement that a>=b
 '''
 def sub(a, b):
     #

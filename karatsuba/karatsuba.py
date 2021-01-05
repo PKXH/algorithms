@@ -13,28 +13,50 @@ def karatsuba(x, y):
     assert(in_type == type(y))
 
     xs, ys = int_list.tuple_listify((x,y))
-#    xs = [0]+xs if len(xs)%2>0 else xs
-#    ys = [0]+ys if len(ys)%2>0 else ys
-
     x_len, y_len = (len(xs), len(ys))
+
+    # if either number has gone to zero don't waste time
+    if xs[0] == 0 or ys[0] == 0:
+        return [0]
+
+    # when we get down to single digits, just multiply them
+#    if x_len==1 and y_len==1:
+#        val = x[0] * y[0] 
+#        return val if in_type is int else int_list.listify(val) 
+
+    # pad it to be big enough to be split into 1/4ths, each with even size
     longest_input_length = max(x_len, y_len)
-    padded_input_length = 
-        longest_input_length + (0 if longest_input_length % 2 == 0 else 1)
- 
-    xp = [] # x, but zero-padded to even length
-    yp = [] # y, but zero-padded to even length
+
+    if longest_input_length <= 2:
+        # we are nearing single digits; we don't want to keep popping back
+        # up to 4-length lists forever.
+        #padded_input_length = 2
+        val = int_list.delistify(xs) * int_list.delistify(ys)
+        return val if in_type is int else int_list.listify(val)
+
+    else:
+        mod4 = longest_input_length % 4
+        padded_input_length = longest_input_length + (0 if mod4==0 else (4 - longest_input_length % 4))
+
+    xp = [] # x, but zero-padded to /4'able length
+    yp = [] # y, but zero-padded to /4'able length
     for n in range(padded_input_length, 0, -1):
-        xp += x[-n] if n <= x_len else 0
-        yp += y[-n] if n <= y_len else 0 
+        xp += [xs[-n]] if n <= x_len else [0]
+        yp += [ys[-n]] if n <= y_len else [0] 
 
-    i,j = (x_len//2, y_len//2)
-    a,b = (xs[:i], xs[i:])
-    c,d = (ys[:j], ys[j:])
+    L_dvby_2 = padded_input_length//2
+    L_dvby_4 = padded_input_length//4
 
-    s1 = karatsuba(a,c) # + [0 for i in range(len(xs))]  
+#    assert(L_dvby_4 * 2 == L_dvby_2 || padded_input_length == 2)
+#    assert(L_dvby_2 * 2 == padded_input_length)
+
+    a,b = (xp[:L_dvby_2], xp[L_dvby_2:])
+    c,d = (yp[:L_dvby_2], yp[L_dvby_2:])
+
+    s1 = karatsuba(a,c)
     s2 = karatsuba(b,d) 
     s1xs2 = karatsuba(int_list.add(a,b), int_list.add(c,d))
-    s3 = int_list.sub( int_list.sub( s1xs2 ), s1 ), s2)    
+    s3 = int_list.sub(int_list.sub( s1xs2, s1 ), s2)    
 
     #
     # need to verify the lengths of these 0-appends
@@ -43,14 +65,26 @@ def karatsuba(x, y):
     # confidence that it's the right calculation? Yes; do the shift and
     # assert that it's the same as the mathematical calculation???
     #
-    s1zeros = s1 + [0 for k in range(i))]
-    assert(s1zeros == s1zeros * 10**i)
+    s1zeros = s1 + [0 for i in range(L_dvby_2)]
+    assert(int_list.delistify(s1zeros) == int_list.delistify(s1) * 10**L_dvby_2)
 
-    ksum = int_list_add([s1 + [0 for i in range(len(xs))], s2, s3 + [0 for i in range(len(xs)/2)]) 
+# so this is getting fucked-up at this point when we're down to two-digit stuff....
+# do we have to just do an conventional multiplication at that point? Or maybe just 
+# say we do a normal multiplication when we get down to 2x2? What would it take to 
+# make this think work all the way down to 1x1?
+    ksum = int_list.add(int_list.add(s1zeros, s2), s3 + [0 for i in range(L_dvby_4)])
 
-    return int_list.deslistify(ksum) if in_type == 'int' else ksum 
+    # this function can process int-lists directly so recursive calls
+    # don't have so much conversion overhead; whatever kind of input
+    # this call got is the kind it should return
+    return int_list.deslistify(ksum) if in_type is int else ksum 
 
+# So I think the strategy right now is to walk thorugh a simple version,
+# and verify it piece by piece with a by-hand work-through
 
+tsum = karatsuba(2222,2)
+tsum = karatsuba(12344,2)
+assert(tsum>0)
 
 class TestKaratsubaFunctions(unittest.TestCase):
 
@@ -86,12 +120,12 @@ class TestKaratsubaFunctions(unittest.TestCase):
             kval2 = karatusba(t2,t1)
 
             self.assertEqual(kval, t1t2,
-                '\nrandom test #' + str(i) + ': ' + str(t1) + " * " + str(t2) + " = " str(t1t2) + 
-                '\n(karatsuba returned: ' + str(kval) 
+                '\nrandom test #' + str(i) + ': ' + str(t1) + " * " + str(t2) + " = " + str(t1t2) + 
+                '\n(karatsuba returned: ' + str(kval)) 
 
             self.assertEqual(kval, t1t2,
-                '\nrandom test #' + str(i) + ': ' + str(t1) + " * " + str(t2) + " = " str(t1t2) + 
-                '\n(karatsuba returned: ' + str(kval) 
+                '\nrandom test #' + str(i) + ': ' + str(t1) + " * " + str(t2) + " = " + str(t1t2) + 
+                '\n(karatsuba returned: ' + str(kval)) 
 
 
 # **********************************************************************

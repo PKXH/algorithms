@@ -6,7 +6,7 @@ import random
 def karatsuba(x, y):
 
     in_type = type(x)
-    assert(in_type == type(y))
+    assert in_type == type(y)
 
     xs, ys = int_list.tuple_listify((x,y))
     x_len, y_len = (len(xs), len(ys))
@@ -39,10 +39,10 @@ def karatsuba(x, y):
         s3 = int_list.sub(int_list.sub( s1xs2, s1 ), s2)
 
         s1zs = s1 + [0 for i in range(m2)]
-        assert(int_list.delistify(s1zs) == int_list.delistify(s1) * 10**m2)
+        assert int_list.delistify(s1zs) == int_list.delistify(s1) * 10**m2
 
         s3zs = s3 + [0 for i in range(m)]
-        assert(int_list.delistify(s3zs) == int_list.delistify(s3) * 10**m)
+        assert int_list.delistify(s3zs) == int_list.delistify(s3) * 10**m
 
         ksum = int_list.add(int_list.add(s1zs, s3zs), s2)
 

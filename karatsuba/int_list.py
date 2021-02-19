@@ -17,7 +17,7 @@ list
 '''
 def listify(x):
 
-    assert(type(x) is int or (type(x) is list))
+    assert type(x) is int or (type(x) is list)
 
     if type(x) is int:
         xs=[]
@@ -38,7 +38,7 @@ by concatenating the list's digits
 '''
 def delistify(x):
 
-    assert(type(x) is list and len(x)>0 and all([(type(i) is int and i<=9) for i in x]))
+    assert type(x) is list and len(x)>0 and all([(type(i) is int and i<=9) for i in x])
 
     return int(''.join([str(d) for d in x]))
 
@@ -132,8 +132,8 @@ lists (ex: the integer 123 is rerresented by the integer digit list
 '''
 def greater_than_or_equal_to(a, b):
 
-    assert(type(a) is list and all([(type(i) is int and i<=9) for i in a]))
-    assert(type(b) is list and all([(type(i) is int and i<=9) for i in b]))
+    assert type(a) is list and all([(type(i) is int and i<=9) for i in a])
+    assert type(b) is list and all([(type(i) is int and i<=9) for i in b])
 
     len_a, len_b = (len(a), len(b))
 
@@ -266,8 +266,8 @@ integer lists
 '''
 def add(a, b):
 
-    assert(type(a) is list and all([(type(i) is int and i<=9) for i in a]))
-    assert(type(b) is list and all([(type(i) is int and i<=9) for i in b]))
+    assert type(a) is list and all([(type(i) is int and i<=9) for i in a])
+    assert type(b) is list and all([(type(i) is int and i<=9) for i in b])
 
     # determine lengths
     len_a = len(a)
@@ -358,8 +358,8 @@ def sub(a, b):
     # same length & ap>=bp simplifies borrow logic, so make sure that's
     # what we got
     #
-    assert(len(ap) == len(bp))
-    assert(len(ap) == max_len)
+    assert len(ap) == len(bp)
+    assert len(ap) == max_len
     if __debug__:
         # 0-padded longest input complicates our paranoia 
         if len(ap)>0 and len(bp)>0:

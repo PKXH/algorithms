@@ -25,6 +25,11 @@ def listify(x):
             xs.append(x%10)
             x//=10
         x = xs[::-1]
+    else:
+        if len(x)>0:
+            # make sure int-lists don't have leading zeros
+            while x[0]==0 and len(x)>1:
+                x = x[1:]
     return x
 
 '''
@@ -365,7 +370,8 @@ def sub(a, b):
             if len(ap_nzis)>0 and len(bp_nzis)>0:
                 # the significant-est non-0 msd is in ap or bust
                 msd = min(ap_nzis[0], bp_nzis[0])
-                assert(ap[msd] >= bp[msd])
+                assert ap[msd] >= bp[msd], "assertion failed: ap[msd] >= bp[msd]\n" + \
+                        str(ap[msd]) + ' < ' + str(bp[msd]) + ' (a=' + str(a) + ', b=' + str(b) + ')' 
 
     #
     # Walk through the two lists and subtract, digit by digit, starting

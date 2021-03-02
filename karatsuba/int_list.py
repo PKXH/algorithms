@@ -3,20 +3,19 @@
 # created by PKXH on 2 Jan 2021
 #
 # functions for creating and manipulating integer lists
-# (ex: an integer list for 0 is [0], 123 is [1,2,3], etc.)
+# (ex: an integer list for 0 is [0], 123 is [1,2,3], etc.).
 #
 
 import unittest
 import random
 
 # ********************************************************************** 
+def listify(x):
 '''
 Convert an arbitrary-lengthed integer argument into a list of value 0-9 
 integer digits, or simply return the input untouched if it is already a 
-list
+list.
 '''
-def listify(x):
-
     assert type(x) is int or (type(x) is list)
 
     if type(x) is int:
@@ -32,25 +31,25 @@ def listify(x):
                 x = x[1:]
     return x
 
-'''
-Convert the list of value 0-9 integer digits into the integer obtained 
-by concatenating the list's digits
-'''
 def delistify(x):
-
+    '''
+    Convert the list of value 0-9 integer digits into the integer obtained 
+    by concatenating the list's digits.
+    '''
     assert type(x) is list and len(x)>0 and all([(type(i) is int and i<=9) for i in x])
 
     return int(''.join([str(d) for d in x]))
 
-'''
-Some basic unit testing to make sure our de/listify functions are 
-working as expected; these should be run whenever there are changes
-to any of the functions tested below.
-'''
 class TestListifyFunctions(unittest.TestCase):
-
+    '''
+    Some basic unit testing to make sure our de/listify functions are 
+    working as expected; these should be run whenever there are changes
+    to any of the functions tested below.
+    '''
     def test_listify(self):
-
+        '''
+        test integer -> int_list conversion. 
+        '''
         self.assertEqual(listify([]), [])
         self.assertEqual(listify([1]), [1])
         self.assertEqual(listify([1,2,3]), [1,2,3])
@@ -58,7 +57,9 @@ class TestListifyFunctions(unittest.TestCase):
         self.assertEqual(listify(123), [1,2,3])
 
     def test_delistify(self):
-
+        '''
+        test int_list -> integer conversion.
+        '''
         self.assertEqual(delistify([0]), 0)
         self.assertEqual(delistify([0,0,0]), 0)
         self.assertEqual(delistify([1,2,3]), 123)
@@ -66,7 +67,10 @@ class TestListifyFunctions(unittest.TestCase):
         self.assertEqual(delistify([0,0,3,2,1]), 321)
 
     def test_inverse_behavior(self):
-
+        '''
+        test roundtrip integer -> int_ist -> integer integrity using a lot
+        of randomly generated integers. 
+        '''
         random.seed()
         num_random_tests = 1000
         max_random_num_val = 999999999999
@@ -79,22 +83,23 @@ class TestListifyFunctions(unittest.TestCase):
 
 
 # ********************************************************************** 
-'''
-convert integer tuples into int-list tuples
-'''
 def tuple_listify(ts):
-
+    '''
+    convert integer tuples into int-list tuples.
+    '''
     return tuple(listify(t) for t in ts)
 
-'''
-Some basic unit testing to make sure our tuple listify functions are 
-working as expected; these should be run whenever there are changes
-to any of the functions tested below.
-'''
 class TestTupleListifyFunctions(unittest.TestCase):
-
+    '''
+    Some basic unit testing to make sure our tuple listify functions are 
+    working as expected; these should be run whenever there are changes
+    to any of the functions tested below.
+    '''
     def test_tuple_listify(self):
-        
+        '''
+        Test the tuple listify functionality using some hand-selected
+        tuples to be listified.
+        '''
         self.assertEqual(tuple_listify(([],[])), ([],[]))
         self.assertEqual(tuple_listify(([0],[0])), ([0],[0]))
         self.assertEqual(tuple_listify((0,0)), ([0],[0]))
@@ -102,22 +107,23 @@ class TestTupleListifyFunctions(unittest.TestCase):
 
 
 # ********************************************************************** 
-'''
-convert integer vectors into int-list vectors
-'''
 def vector_listify(vs):
-
+    '''
+    convert integer vectors into int-list vectors.
+    '''
     return [listify(v) for v in vs]
 
-'''
-Some basic unit testing to make sure our vector listify functions are 
-working as expected; these should be run whenever there are changes
-to any of the functions tested below.
-'''
 class TestVectorListifyFunctions(unittest.TestCase):
-
+    '''
+    Some basic unit testing to make sure our vector listify functions are 
+    working as expected; these should be run whenever there are changes
+    to any of the functions tested below.
+    '''
     def test_vector_listify(self):
-
+        '''
+        Test the vector listify functionality using some hand-selected
+        vectors to be listified.
+        '''
         self.assertEqual(vector_listify([[],[]]), [[],[]])
         self.assertEqual(vector_listify([[0],[0]]), [[0],[0]])
         self.assertEqual(vector_listify([0,0]), [[0],[0]])
@@ -125,13 +131,12 @@ class TestVectorListifyFunctions(unittest.TestCase):
 
 
 # ********************************************************************** 
-'''
-Return a>=b boolean value if a and b are arbitrary-lengthed integer
-lists (ex: the integer 123 is rerresented by the integer digit list 
-[1,2,3])
-'''
 def greater_than_or_equal_to(a, b):
-
+    '''
+    Return a>=b boolean value if a and b are arbitrary-lengthed integer
+    lists (ex: the integer 123 is rerresented by the integer digit list 
+    [1,2,3]).
+    '''
     assert type(a) is list and all([(type(i) is int and i<=9) for i in a])
     assert type(b) is list and all([(type(i) is int and i<=9) for i in b])
 
@@ -161,15 +166,17 @@ def greater_than_or_equal_to(a, b):
         else:
             return greater_than_or_equal_to(a[1:], b[1:])
 
-'''
-Some basic unit testing to make sure our greater-than-or-equal-to 
-functions are working as expected; these should be run whenever there 
-are changes to any of the functions tested below.
-'''
+
 class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
-
+    '''
+    Some basic unit testing to make sure our greater-than-or-equal-to 
+    functions are working as expected; these should be run whenever there 
+    are changes to any of the functions tested below.
+    '''
     def test_greater_than(self):
-
+        '''
+        Run several greater-than-or-equal-to tests. 
+        '''
         #
         # specific/edge cases
         #
@@ -200,7 +207,9 @@ class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
                     'random test #' + str(i) + ': ' + str(b) + ' >= ' + str(a) + ' was expecting TRUE')
 
     def test_less_than(self):
-
+        '''
+        Run several less-than-or-equal-to tests.
+        '''
         #
         # specific/edge cases
         #
@@ -232,7 +241,9 @@ class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
                     'random test #' + str(i) + ': ' + str(b) + ' >= ' + str(a) + ' was expecting FALSE')
             
     def test_equal_to(self):
-
+        '''
+        Run several equal-to tests.
+        '''
         #
         # specific/edge cases
         #
@@ -260,12 +271,11 @@ class TestGreaterThanOrEqualToFunctions(unittest.TestCase):
 
 
 # ********************************************************************** 
-'''
-This function returns the sum (in integer list form) of two non-negative 
-integer lists
-'''
 def add(a, b):
-
+    '''
+    This function returns the sum (in integer list form) of two non-negative 
+    integer lists.
+    '''
     assert type(a) is list and all([(type(i) is int and i<=9) for i in a])
     assert type(b) is list and all([(type(i) is int and i<=9) for i in b])
 
@@ -293,15 +303,16 @@ def add(a, b):
 
     return c
 
-'''
-Some basic unit testing to make sure our add functions are 
-working as expected; these should be run whenever there 
-are changes to any of the functions tested below.
-'''
 class TestAddFunctions(unittest.TestCase):
-
+    '''
+    Some basic unit testing to make sure our add functions are 
+    working as expected; these should be run whenever there 
+    are changes to any of the functions tested below.
+    '''
     def test_add(self):
-
+        '''
+        Run several add tests.
+        '''
         #
         # specific/edge cases
         #
@@ -331,11 +342,11 @@ class TestAddFunctions(unittest.TestCase):
 
 
 # **********************************************************************
-'''
-This function returns the difference (in integer list form) of two
-non-negative integer lists, with the requirement that a>=b
-'''
 def sub(a, b):
+    '''
+    This function returns the difference (in integer list form) of two
+    non-negative integer lists, with the requirement that a>=b.
+    '''
     #
     # initialize list to store our difference and cache input list 
     # lengths since we'll be using them several times
@@ -396,15 +407,16 @@ def sub(a, b):
 
     return diff
 
-'''
-Some basic unit testing to make sure our sub functions are 
-working as expected; these should be run whenever there 
-are changes to any of the functions tested below.
-'''
 class TestSubFunctions(unittest.TestCase):
-
+    '''
+    Some basic unit testing to make sure our sub functions are 
+    working as expected; these should be run whenever there 
+    are changes to any of the functions tested below.
+    '''
     def test_sub(self):
-
+        '''
+        Run several add tests.
+        '''
         #
         # specific/edge cases
         #

@@ -1,10 +1,23 @@
+#
+# karatsuba.py
+# created by PKXH on 2 Jan 2021
+#
+# Implementation of Karatsuba multiplication
+#
+
 import int_list
 import unittest
 import random
 
-
 def karatsuba(x, y):
+    '''
+    Calculate a product using Karatsuba multiplication.
 
+    x,y integers (or int_lists) to be multiplied. Note that the type
+    of the output will match the type of the input.
+
+    returns: integer (or int_list) result of the multiplication.
+    '''
     in_type = type(x)
     assert in_type == type(y)
 
@@ -53,7 +66,10 @@ def karatsuba(x, y):
 
 
 class TestKaratsubaFunctions(unittest.TestCase):
-
+    '''
+    A collection of "unittest" test cases to verify the proper operation of the 
+    karatsuba function.
+    '''
     def test_karatsuba_functions(self):
         #
         # specific / edge cases

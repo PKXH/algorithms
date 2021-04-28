@@ -1,7 +1,16 @@
+//
+// karatsuba.cpp
+//
+// Created by PKXH on 27 Apr 2021
+//
+// Implementation of Karatsuba multiplication
+//
 #include <iostream>
 #include <list>
 
+// ************************************************************************ 
 // *** UNDER CONSTRUCTION *** UNDER CONSTRUCTION *** UNDER CONSTRUCTION ***
+// ************************************************************************ 
 
 // using namespace std;
 

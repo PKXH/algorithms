@@ -42,11 +42,17 @@ private:
     IntList( std::vector<unsigned int>& v );
     IntList( std::string& s );
 
+    // utility functions
+    void remove_leading_zeros( int_list_t& il ); 
+
+
 public:
     // standard usage operators
     int operator[](int i);
     bool operator==(const IntList& il);     
     bool operator!=(const IntList& il);
+
+    // TODO: add >= and + operators at least, and also tests for them.
 
     // available iterator types
     using iterator = int_list_t::iterator;
@@ -63,6 +69,7 @@ public:
     const_iterator cend()   const { return il.cend();   }
 
     // factory functions; this object will only be available via shared smart pointers
+    // TODO: so maybe use a namespace to limit the scope of these freestanding functions?
     friend int_list_sp new_int_list_sp(IntList& x);
     friend int_list_sp new_int_list_sp(std::vector<unsigned int> x);   // we'll need this if we initialize with an std::list
     friend int_list_sp new_int_list_sp(std::vector<unsigned int>& x);

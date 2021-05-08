@@ -18,9 +18,10 @@
 //
 IntList::IntList( IntList& il ) 
 {
-    for (auto& i : il) {
+    for (auto& i : il) 
         this->il.push_back(i);
-    }
+
+    remove_leading_zeros(this->il);
 }
 
 //
@@ -32,6 +33,8 @@ IntList::IntList( std::vector<unsigned int>& v )
     for (auto& i : v) {
         il.push_back(i);
     }
+
+    remove_leading_zeros(il);
 }
 
 //
@@ -49,6 +52,15 @@ IntList::IntList( std::string& s )
         ss >> n;
         il.push_back(n);
     }
+
+    remove_leading_zeros(il);
+}
+
+void IntList::remove_leading_zeros( int_list_t& il ) 
+{
+    // while we have extra leading zeros, remove them
+    while (il.size() > 1 && il.front() == 0) 
+        il.erase(il.begin());
 }
 
 //
@@ -148,6 +160,9 @@ BOOST_AUTO_TEST_CASE( test_initialization )
 
     BOOST_CHECK( *nsl == *nslchk1 );
     BOOST_CHECK( *nsl != *nslchk2 );
+
+    // test various inputs we're expected to handle
+    // BOOST_CHECK( new_int_list_sp({})->length == 0 );
 }
 
 BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
@@ -160,17 +175,11 @@ BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
     BOOST_CHECK( *new_int_list_sp({0,0,0,0,0})   == *new_int_list_sp({0}        ));
     BOOST_CHECK( *new_int_list_sp({0})           == *new_int_list_sp({0}        )); 
 
-    // So we're going to want to integrate leading-zero stripping for
-    // all creation methods; seems like maybe all of these should be 
-    // constructors for a slightly more elabarate int_list type? Maybe
-    // have the object be protected to some factory function that does
-    // the shared_pointer allocation? And how did static linking work 
-    // to make the file not accessible from the outside again? (not that
-    // we're going to be using that method...)
-    
     // And we should have tests for all initialization types, and also test
     // some cross initialization? Well, all of that should be done in the 
     // previous test case.
 }
+
+// TODO: Add something to express the value contained by the int_list as a string 
 
 #endif // BUILD_UNIT_TEST

@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <cassert>
 #include "IntList.h"
 
 #ifdef BUILD_UNIT_TEST
@@ -107,7 +106,8 @@ bool IntList::greater_than_or_equal_to(int_list_sp& a, int_list_sp& b)
     // assert that we have no leading zeros; since our constructor is expected to not
     // allow this to happen, it would be a surprise here
     
-    assert( (*a)[0]!=0 and (*b)[0]!=0 );
+    BOOST_ASSERT( a->size() <= 1 || (*a)[0]!=0 );
+    BOOST_ASSERT( b->size() <= 1 || (*b)[0]!=0 );
 
     if (size_a > size_b)
         return true;
@@ -258,6 +258,36 @@ BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
     // And we should have tests for all initialization types, and also test
     // some cross initialization? Well, all of that should be done in the 
     // previous test case.
+}
+
+BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
+{   //
+    // Some basic unit testing to make sure our greater-than-or-equal-to
+    // functions are working as expected; these should be run whenever there
+    // are changes to any of the functions tested below.    
+    //
+    using vui = std::vector<unsigned int>;
+
+    //
+    // specific/edge cases
+    // 
+    BOOST_CHECK( *new_int_list_sp( vui({1}      ) ) >= *new_int_list_sp( vui({0}        ) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({1,2,3}  ) ) >= *new_int_list_sp( vui({0}        ) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({1,2,3}  ) ) >= *new_int_list_sp( vui({0,0,0,0,0}) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({0,1,2,3}) ) >= *new_int_list_sp( vui({0,0,0,0,0}) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({0,1,2,3}) ) >= *new_int_list_sp( vui({0}        ) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({0,1,2,3}) ) >= *new_int_list_sp( vui({0,0,0,0}  ) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({0,0,0,1}) ) >= *new_int_list_sp( vui({0,0,0,0}  ) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({0,0,0,1}) ) >= *new_int_list_sp( vui({0}        ) ) );
+    //
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({1}      ) ) ) );
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({1,2,3}  ) ) ) );
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0,0,0,0,0}) ) >= *new_int_list_sp( vui({1,2,3}  ) ) ) );
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0,0,0,0,0}) ) >= *new_int_list_sp( vui({0,1,2,3}) ) ) );
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({0,1,2,3}) ) ) );
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0,0,0,0}  ) ) >= *new_int_list_sp( vui({0,1,2,3}) ) ) );
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0,0,0,0}  ) ) >= *new_int_list_sp( vui({0,0,0,1}) ) ) );
+    BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({0,0,0,1}) ) ) );
 }
 
 // TODO: Add something to express the value contained by the int_list as a string 

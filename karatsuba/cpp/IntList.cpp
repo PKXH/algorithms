@@ -274,16 +274,6 @@ BOOST_AUTO_TEST_CASE( test_initialization )
         auto nslchk1 = new_int_list_sp( vui({8,6,7,5,3,0,9}) );
         auto nslchk2 = new_int_list_sp( vui({7,3,6,5,0,0,0}) );
 
-        std::cout << "nsl: ";
-        for (auto& i:*nsl)
-            std::cout << i << ",";
-        std::cout << '\n';
-
-        std::cout << "nslchk1: ";
-        for (auto& i:*nslchk1)
-            std::cout << i << ",";
-        std::cout << '\n';
-
         BOOST_CHECK( *nsl == *nslchk1 );
         BOOST_CHECK( *nsl != *nslchk2 );
     }
@@ -297,16 +287,6 @@ BOOST_AUTO_TEST_CASE( test_initialization )
         auto nl     = new_int_list_sp( n );
         auto nlchk1 = new_int_list_sp( vui({8,6,7,5,3,0,9}) ); 
         auto nlchk2 = new_int_list_sp( vui({7,3,6,5,0,0,0}) );
-
-        std::cout << "nl: ";
-        for (auto& i:*nl)
-            std::cout << i << ",";
-        std::cout << '\n';
-
-        std::cout << "nlchk2: ";
-        for (auto& i:*nlchk2)
-            std::cout << i << ",";
-        std::cout << '\n';
         
         BOOST_CHECK( *nl != *nlchk1 );
         BOOST_CHECK( *nl == *nlchk2 );
@@ -368,8 +348,6 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
 
     std::srand(std::time(nullptr));
     int random_variable = std::rand();
-
-    std::cout << "rand_max: " << RAND_MAX << '\n';
 
     for (auto i=0; i < num_random_tests; i++ ) {
 

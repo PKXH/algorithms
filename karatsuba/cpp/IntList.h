@@ -37,6 +37,7 @@ private:
     IntList( const IntList& il ); 
     IntList( const std::vector<unsigned int>& v );
     IntList( const std::string& s );
+    IntList( unsigned int n ); 
 
     // utility functions
     void remove_leading_zeros( int_list_t& il ); 
@@ -79,6 +80,7 @@ public:
     friend int_list_sp new_int_list_sp(const IntList& x);
     friend int_list_sp new_int_list_sp(const std::vector<unsigned int>& x);
     friend int_list_sp new_int_list_sp(const std::string& s);
+    friend int_list_sp new_int_list_sp(unsigned int n);
 };
 
 //
@@ -88,5 +90,6 @@ public:
 int_list_sp new_int_list_sp(const IntList& x);
 int_list_sp new_int_list_sp(const std::vector<unsigned int>& x);
 int_list_sp new_int_list_sp(const std::string& s);
+int_list_sp new_int_list_sp(unsigned int n);
 
 #endif // __int_list_h

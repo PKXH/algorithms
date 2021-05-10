@@ -20,7 +20,6 @@ IntList::IntList( const IntList& il )
 {
     for (auto& i : il) 
         this->il.push_back(i);
-
     remove_leading_zeros(this->il);
 }
 
@@ -33,7 +32,6 @@ IntList::IntList( const std::vector<unsigned int>& v )
     for (auto& i : v) {
         il.push_back(i);
     }
-
     remove_leading_zeros(il);
 }
 
@@ -52,7 +50,6 @@ IntList::IntList( const std::string& s )
         ss >> n;
         il.push_back(n);
     }
-
     remove_leading_zeros(il);
 }
 
@@ -84,7 +81,7 @@ void IntList::delete_msd()
 void IntList::remove_leading_zeros( int_list_t& il ) 
 {
     // while we have extra leading zeros, remove them
-    while (il.size() > 1 && il.front() == 0) 
+    while (il.size() > 1 && il[0] == 0) 
         delete_msd();
 }
 
@@ -117,11 +114,12 @@ bool IntList::greater_than_or_equal_to(int_list_sp& a, int_list_sp& b)
     auto size_a = a->size();
     auto size_b = b->size();
 
-    // assert that we have no leading zeros; since our constructor is expected to not
-    // allow this to happen, it would be a surprise here
-    
-    BOOST_ASSERT( a->size() <= 1 || (*a)[0]!=0 );
-    BOOST_ASSERT( b->size() <= 1 || (*b)[0]!=0 );
+    // NOTE that there may be leading zeros at this point, since this is 
+    // recursive function that keeps stripping off the first digit as it
+    // does it's destructive comparison, eventually uncovering non-leading
+    // zeros, so please refrain from too-clever-by-half assertions on the 
+    // matter; any leading-zero checks should be in the enclosing >= 
+    // operator overload.
 
     if (size_a > size_b)
         return true;
@@ -156,6 +154,15 @@ bool IntList::operator>=(const IntList& that)
     auto a = new_int_list_sp(*this);
     auto b = new_int_list_sp(that);
 
+    // assert that we have no leading zeros; since our constructor is expected to not
+    // allow this to happen, it would be a surprise here
+  
+    std::stringstream error_msg_ss;
+    error_msg_ss << "a:" << a->str() <<", b:" << b->str();
+
+    BOOST_CHECK_MESSAGE( a->size() <= 1 || (*a)[0]!=0, error_msg_ss.str() );
+    BOOST_CHECK_MESSAGE( b->size() <= 1 || (*b)[0]!=0, error_msg_ss.str() );
+
     return greater_than_or_equal_to(a,b); 
 }
 
@@ -177,6 +184,23 @@ bool IntList::operator>=(const int_list_sp& that)
 int IntList::size()
 {
     return il.size();
+}
+
+//
+// A string representation of the contents of  integer list
+// 
+std::string IntList::str()
+{
+    std::stringstream str;
+
+    str << "{";
+
+    for (auto& i : il)
+        str << i << ",";
+
+    str << "}\n";
+
+    return str.str(); 
 }
 
 //
@@ -292,12 +316,6 @@ BOOST_AUTO_TEST_CASE( test_initialization )
     // BOOST_CHECK( new_int_list_sp({})->length == 0 );
 }
 
-BOOST_AUTO_TEST_CASE( test_unsigned_int_initalization )
-{   //
-    // check   
-
-}
-
 BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
 {   //
     // let's try a few obvious hand-gen'd samples and edge cases
@@ -346,15 +364,29 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
     //
     // double-check random values with c++ math
     //
-//    const unsigned int  num_random_tests   = 1000;
-//
-//    std::srand(std::time(nullptr));
-//    int random_variable = std::rand();
-//
-//    std::cout << "rand_max: " << RAND_MAX << '\n';
-//
-//    for (auto i=0; i < num_random_tests; i++ ) {
-//    }
+    const unsigned int  num_random_tests   = 1000;
+
+    std::srand(std::time(nullptr));
+    int random_variable = std::rand();
+
+    std::cout << "rand_max: " << RAND_MAX << '\n';
+
+    for (auto i=0; i < num_random_tests; i++ ) {
+
+        auto a = std::rand();
+        auto b = std::rand();
+
+        std::stringstream error_msg_ss;
+        error_msg_ss << "random test #" << i << ": " << a << " >= " << b;
+
+        if (a >= b) {
+            error_msg_ss << " was expecting TRUE";
+            BOOST_CHECK_MESSAGE( *new_int_list_sp(a) >= *new_int_list_sp(b), error_msg_ss.str() );
+        } else {
+            error_msg_ss << " was expecting FALSE";
+            BOOST_CHECK_MESSAGE( *new_int_list_sp(b) >= *new_int_list_sp(a), error_msg_ss.str() );
+        }
+    }
 }
 
 // TODO: Add something to express the value contained by the int_list as a string 

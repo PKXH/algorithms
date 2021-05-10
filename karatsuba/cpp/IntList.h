@@ -20,10 +20,6 @@ using int_list_sp = std::shared_ptr<IntList>;
 //typedef std::shared_ptr< IntList > int_list_sp;
 
 // int list factory functions; yes, you only get a smart pointer to it
-// TODO: note that you just need to declare these as friends to the class below
-//int_list_sp new_int_list(IntList& x);
-//int_list_sp new_int_list(std::vector<unsigned int>& v);
-//int_list_sp new_int_list(std::string& s);
 
 class IntList
 //
@@ -38,21 +34,32 @@ private:
     int_list_t il;
 
     // constructors
-    IntList( IntList& il ); 
-    IntList( std::vector<unsigned int>& v );
-    IntList( std::string& s );
+    IntList( const IntList& il ); 
+    IntList( const std::vector<unsigned int>& v );
+    IntList( const std::string& s );
 
     // utility functions
     void remove_leading_zeros( int_list_t& il ); 
-
+    bool greater_than_or_equal_to(int_list_sp& a, int_list_sp& b);
+    void delete_msd();
 
 public:
     // standard usage operators
-    int operator[](int i);
+    int  operator[](int i);
+
+    // class operators
     bool operator==(const IntList& il);     
     bool operator!=(const IntList& il);
+    bool operator>=(const IntList& il);
+
+    // mirrored smart pointer operators
+    bool operator==(const int_list_sp& ilsp);
+    bool operator!=(const int_list_sp& ilsp);
+    bool operator>=(const int_list_sp& ilsp);
 
     // TODO: add >= and + operators at least, and also tests for them.
+
+    int size();
 
     // available iterator types
     using iterator = int_list_t::iterator;
@@ -69,11 +76,17 @@ public:
     const_iterator cend()   const { return il.cend();   }
 
     // factory functions; this object will only be available via shared smart pointers
-    // TODO: so maybe use a namespace to limit the scope of these freestanding functions?
-    friend int_list_sp new_int_list_sp(IntList& x);
-    friend int_list_sp new_int_list_sp(std::vector<unsigned int> x);   // we'll need this if we initialize with an std::list
-    friend int_list_sp new_int_list_sp(std::vector<unsigned int>& x);
-    friend int_list_sp new_int_list_sp(std::string& s);
+    friend int_list_sp new_int_list_sp(const IntList& x);
+    friend int_list_sp new_int_list_sp(const std::vector<unsigned int>& x);
+    friend int_list_sp new_int_list_sp(const std::string& s);
 };
+
+//
+// int list factory functions; yes, you only get a smart pointer to it
+// TODO: so maybe use a namespace to limit the scope of these freestanding functions?
+//
+int_list_sp new_int_list_sp(const IntList& x);
+int_list_sp new_int_list_sp(const std::vector<unsigned int>& x);
+int_list_sp new_int_list_sp(const std::string& s);
 
 #endif // __int_list_h

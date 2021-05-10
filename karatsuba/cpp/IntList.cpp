@@ -57,6 +57,20 @@ IntList::IntList( const std::string& s )
 }
 
 //
+// construct this IntList using an unsigned integer value
+//
+IntList::IntList( unsigned int n )
+{
+    while (n>0) {
+        il.insert(il.begin(), n%10);
+        n/=10;
+    }
+
+    // We expect no leading zeros from this process
+    BOOST_ASSERT( il.size() <= 1 || il[0]!=0 );
+}
+
+//
 // delete the most significant digit in this integer list
 //
 void IntList::delete_msd()
@@ -189,6 +203,13 @@ int_list_sp new_int_list_sp(const std::string& s)
     return int_list_sp( new IntList(s) );
 }
 
+//
+// create an int_list shared pointer from unsigned int value
+//
+int_list_sp new_int_list_sp(unsigned int n)
+{
+    return int_list_sp( new IntList(n) );
+}
 
 #ifdef BUILD_UNIT_TEST
 
@@ -197,16 +218,18 @@ int_list_sp new_int_list_sp(const std::string& s)
 //
 BOOST_AUTO_TEST_CASE( test_initialization )
 {
-    // list contents can be compared directly with ==
-    {
+    {   //
+        // list contents can be compared directly with ==
+        //
         std::list<unsigned int> l1 = {0,1,2,3};
         std::list<unsigned int> l2 = {0,1,2,3};
 
         BOOST_CHECK( l1 == l2 );
     }
 
-    // note that when comparing contents the pointers must be dereferenced
-    { 
+    {   // 
+        // note that when comparing contents the pointers must be dereferenced
+        //
         using vui = std::vector<unsigned int>;
 
         auto il1 = new_int_list_sp( vui({0,1,2,3,4}) );
@@ -217,8 +240,9 @@ BOOST_AUTO_TEST_CASE( test_initialization )
         BOOST_CHECK( *il1 != *il3 );
     }
 
-    // check list initialization from numeric string
-    {
+    {   //
+        // check list initialization from numeric string
+        //
         using vui = std::vector<unsigned int>;
         std::string ns = "8675309";
 
@@ -239,13 +263,43 @@ BOOST_AUTO_TEST_CASE( test_initialization )
         BOOST_CHECK( *nsl == *nslchk1 );
         BOOST_CHECK( *nsl != *nslchk2 );
     }
+
+    {   //
+        // test unsigned int initialization
+        //
+        using vui = std::vector<unsigned int>;
+        unsigned int n = 7365000;
+
+        auto nl     = new_int_list_sp( n );
+        auto nlchk1 = new_int_list_sp( vui({8,6,7,5,3,0,9}) ); 
+        auto nlchk2 = new_int_list_sp( vui({7,3,6,5,0,0,0}) );
+
+        std::cout << "nl: ";
+        for (auto& i:*nl)
+            std::cout << i << ",";
+        std::cout << '\n';
+
+        std::cout << "nlchk2: ";
+        for (auto& i:*nlchk2)
+            std::cout << i << ",";
+        std::cout << '\n';
+        
+        BOOST_CHECK( *nl != *nlchk1 );
+        BOOST_CHECK( *nl == *nlchk2 );
+    }
+
     // test various inputs we're expected to handle
     // BOOST_CHECK( new_int_list_sp({})->length == 0 );
 }
 
+BOOST_AUTO_TEST_CASE( test_unsigned_int_initalization )
+{   //
+    // check   
+
+}
+
 BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
-{   
-    //
+{   //
     // let's try a few obvious hand-gen'd samples and edge cases
     //
     using vui = std::vector<unsigned int>;
@@ -288,6 +342,19 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
     BOOST_CHECK( ! ( *new_int_list_sp( vui({0,0,0,0}  ) ) >= *new_int_list_sp( vui({0,1,2,3}) ) ) );
     BOOST_CHECK( ! ( *new_int_list_sp( vui({0,0,0,0}  ) ) >= *new_int_list_sp( vui({0,0,0,1}) ) ) );
     BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({0,0,0,1}) ) ) );
+
+    //
+    // double-check random values with c++ math
+    //
+//    const unsigned int  num_random_tests   = 1000;
+//
+//    std::srand(std::time(nullptr));
+//    int random_variable = std::rand();
+//
+//    std::cout << "rand_max: " << RAND_MAX << '\n';
+//
+//    for (auto i=0; i < num_random_tests; i++ ) {
+//    }
 }
 
 // TODO: Add something to express the value contained by the int_list as a string 

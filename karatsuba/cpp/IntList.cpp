@@ -356,10 +356,6 @@ BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
     BOOST_CHECK( *new_int_list_sp( vui({0,0,0,0,1,2}) ) == *new_int_list_sp( vui({1,2}      ) ));
     BOOST_CHECK( *new_int_list_sp( vui({0,0,0,0,0}  ) ) == *new_int_list_sp( vui({0}        ) ));
     BOOST_CHECK( *new_int_list_sp( vui({0}          ) ) == *new_int_list_sp( vui({0}        ) )); 
-
-    // And we should have tests for all initialization types, and also test
-    // some cross initialization? Well, all of that should be done in the 
-    // previous test case.
 }
 
 BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )

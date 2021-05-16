@@ -47,21 +47,22 @@ private:
 
 public:
     // standard usage operators
-    int  operator[](int i);
+    unsigned int& operator[](int i);
 
     // class operators
     bool operator==(const IntList& il);     
     bool operator!=(const IntList& il);
     bool operator>=(const IntList& il);
 
-    // mirrored smart pointer operators
-    bool operator==(const int_list_sp& ilsp);
-    bool operator!=(const int_list_sp& ilsp);
-    bool operator>=(const int_list_sp& ilsp);
+    // smart pointer only?
+    //int_list_sp operator+(const int_list_sp& that);
 
     // TODO: add >= and + operators at least, and also tests for them.
 
     int size();
+
+    unsigned int msd();
+    unsigned int lsd();
 
     // available iterator types
     using iterator = int_list_t::iterator;

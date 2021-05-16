@@ -43,7 +43,6 @@ private:
     void remove_leading_zeros( int_list_t& il ); 
     bool greater_than_or_equal_to(int_list_sp& a, int_list_sp& b);
     void delete_msd();
-    std::string str();
 
 public:
     // standard usage operators
@@ -53,6 +52,8 @@ public:
     bool operator==(const IntList& il);     
     bool operator!=(const IntList& il);
     bool operator>=(const IntList& il);
+
+    std::string str();
 
     // smart pointer only?
     //int_list_sp operator+(const int_list_sp& that);

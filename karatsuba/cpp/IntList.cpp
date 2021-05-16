@@ -332,7 +332,6 @@ BOOST_AUTO_TEST_CASE( test_initialization )
         BOOST_CHECK( *nsl != *nslchk2 );
     }
 
-
     {   //
         // make sure that invalid string inputs are rejected and called out by name
         //
@@ -441,7 +440,5 @@ BOOST_AUTO_TEST_CASE( test_out_of_index_behavior )
         BOOST_CHECK( (*il)[10000] == 0 );
     }
 }
-
-// TODO: Add something to express the value contained by the int_list as a string 
 
 #endif // BUILD_UNIT_TEST

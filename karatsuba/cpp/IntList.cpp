@@ -28,7 +28,6 @@ IntList::IntList( const IntList& il )
 //
 IntList::IntList( const std::vector<unsigned int>& v ) 
 {
-    // TODO: make sure that we reject non-int'y vectors elegantly
     for (auto& i : v) {
         il.insert(il.begin(),i);
     }
@@ -40,7 +39,6 @@ IntList::IntList( const std::vector<unsigned int>& v )
 //
 IntList::IntList( const std::string& s )
 {
-    // TODO: make sure that we reject non-int'y strings elegantly 
     for (auto& c : s) { 
 
         std::stringstream ss;
@@ -48,6 +46,11 @@ IntList::IntList( const std::string& s )
 
         ss << c;
         ss >> n;
+
+        if (n==0 && c!='0') {
+            throw std::invalid_argument(s);
+        }
+
         il.insert(il.begin(),n);
     }
     remove_leading_zeros(il);
@@ -207,11 +210,17 @@ int IntList::size()
     return il.size();
 }
 
+//
+// return the value of the most significant digit
+//
 unsigned int IntList::msd()
 {
     return il.back();
 }
 
+//
+// return the value of the least significant digit
+//
 unsigned int IntList::lsd()
 {
     return il.front();
@@ -296,20 +305,6 @@ BOOST_AUTO_TEST_CASE( test_initialization )
     }
 
     {   //
-        // check list initialization from numeric string
-        //
-        using vui = std::vector<unsigned int>;
-        std::string ns = "8675309";
-
-        auto nsl     = new_int_list_sp( ns );
-        auto nslchk1 = new_int_list_sp( vui({8,6,7,5,3,0,9}) );
-        auto nslchk2 = new_int_list_sp( vui({7,3,6,5,0,0,0}) );
-
-        BOOST_CHECK( *nsl == *nslchk1 );
-        BOOST_CHECK( *nsl != *nslchk2 );
-    }
-
-    {   //
         // test unsigned int initialization
         //
         using vui = std::vector<unsigned int>;
@@ -323,8 +318,33 @@ BOOST_AUTO_TEST_CASE( test_initialization )
         BOOST_CHECK( *nl == *nlchk2 );
     }
 
-    // test various inputs we're expected to handle
-    // BOOST_CHECK( new_int_list_sp({})->length == 0 );
+    {   //
+        // check list initialization from numeric string
+        //
+        using vui = std::vector<unsigned int>;
+        std::string ns = "8675309";
+
+        auto nsl     = new_int_list_sp( ns );
+        auto nslchk1 = new_int_list_sp( vui({8,6,7,5,3,0,9}) );
+        auto nslchk2 = new_int_list_sp( vui({7,3,6,5,0,0,0}) );
+
+        BOOST_CHECK( *nsl == *nslchk1 );
+        BOOST_CHECK( *nsl != *nslchk2 );
+    }
+
+
+    {   //
+        // make sure that invalid string inputs are rejected and called out by name
+        //
+        std::string  bad_integer_string = "ABC12D3";
+        BOOST_CHECK_EXCEPTION( new_int_list_sp(bad_integer_string), 
+                               std::invalid_argument,
+                               [&](const std::invalid_argument& ex){ 
+                                   BOOST_CHECK_EQUAL(ex.what(), bad_integer_string);
+                                   return true;
+                               }
+                             );
+    }
 }
 
 BOOST_AUTO_TEST_CASE( test_no_leading_zeros )

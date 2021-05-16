@@ -30,7 +30,7 @@ IntList::IntList( const std::vector<unsigned int>& v )
 {
     // TODO: make sure that we reject non-int'y vectors elegantly
     for (auto& i : v) {
-        il.push_back(i);
+        il.insert(il.begin(),i);
     }
     remove_leading_zeros(il);
 }
@@ -48,7 +48,7 @@ IntList::IntList( const std::string& s )
 
         ss << c;
         ss >> n;
-        il.push_back(n);
+        il.insert(il.begin(),n);
     }
     remove_leading_zeros(il);
 }
@@ -59,12 +59,12 @@ IntList::IntList( const std::string& s )
 IntList::IntList( unsigned int n )
 {
     while (n>0) {
-        il.insert(il.begin(), n%10);
+        il.push_back(n%10);
         n/=10;
     }
 
     // We expect no leading zeros from this process
-    BOOST_ASSERT( il.size() <= 1 || il[0]!=0 );
+    BOOST_ASSERT( this->size() <= 1 || this->msd()!=0 );
 }
 
 //
@@ -72,7 +72,7 @@ IntList::IntList( unsigned int n )
 //
 void IntList::delete_msd()
 {
-    il.erase(il.begin());
+    il.pop_back();
 }
 
 //
@@ -81,16 +81,18 @@ void IntList::delete_msd()
 void IntList::remove_leading_zeros( int_list_t& il ) 
 {
     // while we have extra leading zeros, remove them
-    while (il.size() > 1 && il[0] == 0) 
+    while (this->size() > 1 && this->msd() == 0) 
         delete_msd();
 }
 
 //
 // indexing operator
 //
-int IntList::operator[](int i)
+unsigned int& IntList::operator[](int i)
 {
-    return il[i];
+    static unsigned int zero = 0;
+    BOOST_ASSERT( zero == 0 ); // someone may have tried to assign out-of-range
+    return i<il.size() ? (il[i]) : zero;
 }
 
 //
@@ -131,8 +133,8 @@ bool IntList::greater_than_or_equal_to(int_list_sp& a, int_list_sp& b)
         if (size_a == 0)
             return true;
         
-        else if ((*a)[0] != (*b)[0]) 
-            return (*a)[0] >= (*b)[0];
+        else if (a->msd() != b->msd()) 
+            return a->msd() >= b->msd();
         
         else { 
             a->delete_msd();
@@ -160,23 +162,42 @@ bool IntList::operator>=(const IntList& that)
     std::stringstream error_msg_ss;
     error_msg_ss << "a:" << a->str() <<", b:" << b->str();
 
-    BOOST_CHECK_MESSAGE( a->size() <= 1 || (*a)[0]!=0, error_msg_ss.str() );
-    BOOST_CHECK_MESSAGE( b->size() <= 1 || (*b)[0]!=0, error_msg_ss.str() );
+    BOOST_CHECK_MESSAGE( a->size() <= 1 || a->msd()!=0, error_msg_ss.str() );
+    BOOST_CHECK_MESSAGE( b->size() <= 1 || b->msd()!=0, error_msg_ss.str() );
 
     return greater_than_or_equal_to(a,b); 
 }
 
 //
-// operator that returns 'true' if the integer encoded by '*this' is >= the integer encoded
-// by '*that', and false otherwise
+// operator that returns int_list_sp containing the sum of "this" int_list_sp and "that"
+// int_list_sp; so I'm assuming this has to be something external... or I guess it can
+// be an IntList member that returns an int_list_sp? Maybe it should be external... and
+// namespace-protected...?
 //
-bool IntList::operator>=(const int_list_sp& that)
-{   //
-    // treat a int_list_sp like the IntList it points to by redirecting to the class-version
-    // of the operator
-    //
-    return *this >= *that;
-}
+//int_list_sp IntList::operator+(const int_list_sp& that)
+//{
+//    // determine sizes
+//    const auto this_size = this->size();
+//    const auto that_size = that->size();
+//    const auto max_size  = std::max(this_size, that_size);
+//
+//    // sooo, make a max_size+1 zero'd int array, and maybe add directly from the
+//    // this and that, but capture out-of-bound indices and return zeros? Maybe a
+//    // function: get_zero_safe_index(this, 5)
+//    // Better yet, if the index is out of bounds, just return a zero!
+//
+//    auto sum = new_int_list_sp(0);
+//
+//    for (int i=0; i < max_size-1; i++) {
+//        auto dgt_sum = (*this)[i] + (*that)[i] + (*sum)[i];
+//        auto dgt_div = dgt_sum / 10;
+//        auto dgt_mod = dgt_sum % 10;
+//        (*sum)[i]    = dgt_div;
+//        (*sum)[i+1]  = dgt_mod; 
+//    }
+//
+//    return sum;
+//}
 
 //
 // Return the size of the integer list
@@ -184,6 +205,16 @@ bool IntList::operator>=(const int_list_sp& that)
 int IntList::size()
 {
     return il.size();
+}
+
+unsigned int IntList::msd()
+{
+    return il.back();
+}
+
+unsigned int IntList::lsd()
+{
+    return il.front();
 }
 
 //
@@ -195,8 +226,8 @@ std::string IntList::str()
 
     str << "{";
 
-    for (auto& i : il)
-        str << i << ",";
+    for (auto i=il.rbegin(); i!=il.rend(); ++i)
+        str << *i << ",";
 
     str << "}\n";
 
@@ -331,6 +362,7 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
     BOOST_CHECK( *new_int_list_sp( vui({0,1,2,3}) ) >= *new_int_list_sp( vui({0,0,0,0}  ) ) );
     BOOST_CHECK( *new_int_list_sp( vui({0,0,0,1}) ) >= *new_int_list_sp( vui({0,0,0,0}  ) ) );
     BOOST_CHECK( *new_int_list_sp( vui({0,0,0,1}) ) >= *new_int_list_sp( vui({0}        ) ) );
+    BOOST_CHECK( *new_int_list_sp( vui({0,0,1,2}) ) >= *new_int_list_sp( vui({0,1,2}    ) ) );
     //
     BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({1}      ) ) ) );
     BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({1,2,3}  ) ) ) );
@@ -364,6 +396,29 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
             error_msg_ss << " was expecting FALSE";
             BOOST_CHECK_MESSAGE( *new_int_list_sp(b) >= *new_int_list_sp(a), error_msg_ss.str() );
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE( test_out_of_index_behavior )
+{   //
+    // make sure our integer list indexing operator is behaving properly
+    //
+    using vui = std::vector<unsigned int>;
+
+    {   //
+        // Make sure it returns valid initialized values, and zeros everywhere else
+        //
+        auto il = new_int_list_sp(123);
+
+        //
+        // Verify little endian; zeros for non-initialized indices
+        //
+        BOOST_CHECK( (*il)[    0] == 3 );
+        BOOST_CHECK( (*il)[    1] == 2 );
+        BOOST_CHECK( (*il)[    2] == 1 );
+        BOOST_CHECK( (*il)[    3] == 0 );
+        BOOST_CHECK( (*il)[  100] == 0 ); 
+        BOOST_CHECK( (*il)[10000] == 0 );
     }
 }
 

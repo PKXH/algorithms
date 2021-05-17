@@ -91,7 +91,7 @@ void IntList::remove_leading_zeros( int_list_t& il )
 //
 // indexing operator
 //
-WriteCheck IntList::operator[](int i)
+WriteCheck IntList::operator[](unsigned int i)
 {   //
     // if the caller is requesting an out-of-range digit (above msd), fake
     // zero padding and don't allow out-of-range write-backs

@@ -44,7 +44,7 @@ private:
 public:
     // index operator; returns value-wrapper that blocks writebacks for
     // out-of-range selections
-    WriteCheck operator[](int i);
+    WriteCheck operator[](unsigned int i);
 
     // class operators
     bool operator==(const IntList& il);     

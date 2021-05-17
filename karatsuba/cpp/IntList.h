@@ -31,13 +31,12 @@ private:
     int_list_t il;
 
     // constructors
-    IntList( const IntList& il ); 
-    IntList( const std::vector<unsigned int>& v );
-    IntList( const std::string& s );
+    IntList( const IntList& il, bool trim_leading_zeros = true ); 
+    IntList( const std::vector<unsigned int>& v, bool trim_leading_zeros = true );
+    IntList( const std::string& s, bool trim_leading_zeros = true );
     IntList( unsigned int n ); 
 
     // utility functions
-    void remove_leading_zeros( int_list_t& il ); 
     bool greater_than_or_equal_to(int_list_sp& a, int_list_sp& b);
     void delete_msd();
 
@@ -61,6 +60,9 @@ public:
     unsigned int msd();
     unsigned int lsd();
 
+    // utility functions
+    void remove_leading_zeros(); 
+
     // available iterator types
     using iterator = int_list_t::iterator;
     using const_iterator = int_list_t::const_iterator;
@@ -76,15 +78,15 @@ public:
     const_iterator cend()   const { return il.cend();   }
 
     // factory functions; this object will only be available via shared smart pointers
-    friend int_list_sp new_int_list_sp(const IntList& x);
-    friend int_list_sp new_int_list_sp(const std::vector<unsigned int>& x);
-    friend int_list_sp new_int_list_sp(const std::string& s);
+    friend int_list_sp new_int_list_sp(const IntList& x, bool trim_leading_zeros);
+    friend int_list_sp new_int_list_sp(const std::vector<unsigned int>& x, bool trim_leading_zeros);
+    friend int_list_sp new_int_list_sp(const std::string& s, bool trim_leading_zeros);
     friend int_list_sp new_int_list_sp(unsigned int n);
 };
 
 //
 // class to wrap returned unsigned int reference from integer list's index overload.
-// allows blocking of writebacks
+// allows selected blocking of writebacks
 //
 class WriteCheck
 {
@@ -117,9 +119,9 @@ public:
 // int list factory functions; yes, you only get a smart pointer to it
 // TODO: so maybe use a namespace to limit the scope of these freestanding functions?
 //
-int_list_sp new_int_list_sp(const IntList& x);
-int_list_sp new_int_list_sp(const std::vector<unsigned int>& x);
-int_list_sp new_int_list_sp(const std::string& s);
+int_list_sp new_int_list_sp(const IntList& x, bool trim_leading_zeros=true);
+int_list_sp new_int_list_sp(const std::vector<unsigned int>& x, bool trim_leading_zeros=true);
+int_list_sp new_int_list_sp(const std::string& s, bool trim_leading_zeros=true);
 int_list_sp new_int_list_sp(unsigned int n);
 
 #endif // __int_list_h

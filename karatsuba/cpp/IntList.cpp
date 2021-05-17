@@ -16,28 +16,31 @@
 //
 // construct this IntList using an IntList reference
 //
-IntList::IntList( const IntList& il ) 
+IntList::IntList( const IntList& il, bool trim_leading_zeros ) 
 {
     for (auto& i : il) 
         this->il.push_back(i);
-    remove_leading_zeros(this->il);
+    if (trim_leading_zeros)
+        remove_leading_zeros();
 }
 
 //
 // construct this IntList using an unsigned in vector reference
 //
-IntList::IntList( const std::vector<unsigned int>& v ) 
+IntList::IntList( const std::vector<unsigned int>& v, bool trim_leading_zeros ) 
 {
     for (auto& i : v) {
         il.insert(il.begin(),i);
     }
-    remove_leading_zeros(il);
+
+    if (trim_leading_zeros)
+        remove_leading_zeros();
 }
 
 //
 // construct this IntList using a numeric string reference
 //
-IntList::IntList( const std::string& s )
+IntList::IntList( const std::string& s, bool trim_leading_zeros)
 {
     for (auto& c : s) { 
 
@@ -53,7 +56,9 @@ IntList::IntList( const std::string& s )
 
         il.insert(il.begin(),n);
     }
-    remove_leading_zeros(il);
+
+    if (trim_leading_zeros)
+        remove_leading_zeros();
 }
 
 //
@@ -81,7 +86,7 @@ void IntList::delete_msd()
 //
 // remove the leading zeros from this integer list
 //
-void IntList::remove_leading_zeros( int_list_t& il ) 
+void IntList::remove_leading_zeros() 
 {
     // while we have extra leading zeros, remove them
     while (this->size() > 1 && this->msd() == 0) 
@@ -181,6 +186,20 @@ bool IntList::operator>=(const IntList& that)
 // namespace-protected...?
 //
 //int_list_sp IntList::operator+(const int_list_sp& that)
+
+// What's the best way to handle the return? Something that needs to be copied? Or should we pass
+// an object to be filled in?
+
+// So I'm thinking maybe I need to change the writeback to extend the representation if 
+// the index on the write is out-of-bounds and the digit being written is > 0 (if it is
+// =0 then maybe just silently ignore?)
+
+// Or maybe, we can specify whether or not to get rid of leading 0's? Seems like we should
+// be able to specify the length of an all-0 list that doesn't auto-truncate. Maybe add a
+// "remove leading zeros" member? And add a flag to the constructor that decides whether to
+// apply it to the initialized value?
+
+//IntList add(IntList& a, IntList& b, IntList& sum) 
 //{
 //    // determine sizes
 //    const auto this_size = this->size();
@@ -249,25 +268,25 @@ std::string IntList::str()
 //
 // create an int_list shared pointer from another int list
 //
-int_list_sp new_int_list_sp(const IntList& il) 
+int_list_sp new_int_list_sp(const IntList& il, bool trim_leading_zeros) 
 {
-    return int_list_sp( new IntList(il) ); 
+    return int_list_sp( new IntList(il, trim_leading_zeros) ); 
 }
 
 //
 // create an int_list shared pointer from an std::vector integer list reference
 //
-int_list_sp new_int_list_sp(const std::vector<unsigned int>& v)
+int_list_sp new_int_list_sp(const std::vector<unsigned int>& v, bool trim_leading_zeros)
 {
-    return int_list_sp( new IntList(v) ); 
+    return int_list_sp( new IntList(v, trim_leading_zeros) ); 
 }
 
 //
 // create an int_list shared pointer from std::string integer string
 //
-int_list_sp new_int_list_sp(const std::string& s)
+int_list_sp new_int_list_sp(const std::string& s, bool trim_leading_zeros)
 {
-    return int_list_sp( new IntList(s) );
+    return int_list_sp( new IntList(s, trim_leading_zeros) );
 }
 
 //
@@ -449,6 +468,39 @@ BOOST_AUTO_TEST_CASE( test_out_of_index_behavior )
         // Verify out-of-range assignment is rejected
         //
         BOOST_CHECK_EXCEPTION( (*il)[3] = 5, 
+                               std::out_of_range,
+                               [](const std::out_of_range& ex){ return true; } 
+                             );
+    }
+}
+
+BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
+{   //
+    // make sure we can trim/not trim leading zeros on our integer lists
+    //
+    using vui = std::vector<unsigned int>;
+
+    {   //
+        // starting with all-zero list
+        //
+        auto il = new_int_list_sp(vui({0,0,0,0,0,0,0,0,0,0}), false);
+
+        (*il)[8] = 1;
+        (*il)[3] = 2;
+
+        // verify new values were written to the expected offsets, and that the
+        // leading zero is intact
+        BOOST_CHECK( *il == *new_int_list_sp(vui({0,1,0,0,0,0,2,0,0,0}), false) );
+
+        il->remove_leading_zeros();
+
+        // verify leading zero was chopped off
+        BOOST_CHECK( *il == *new_int_list_sp(vui({1,0,0,0,0,2,0,0,0}), false) );
+
+        //
+        // Verify newly-out-of-range assignment is rejected
+        //
+        BOOST_CHECK_EXCEPTION( (*il)[9] = 5, 
                                std::out_of_range,
                                [](const std::out_of_range& ex){ return true; } 
                              );

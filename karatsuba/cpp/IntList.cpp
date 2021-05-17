@@ -91,11 +91,14 @@ void IntList::remove_leading_zeros( int_list_t& il )
 //
 // indexing operator
 //
-unsigned int& IntList::operator[](int i)
-{
+WriteCheck IntList::operator[](int i)
+{   //
+    // if the caller is requesting an out-of-range digit (above msd), fake
+    // zero padding and don't allow out-of-range write-backs
+    // 
     static unsigned int zero = 0;
-    BOOST_ASSERT( zero == 0 ); // someone may have tried to assign out-of-range
-    return i<il.size() ? (il[i]) : zero;
+    BOOST_ASSERT( zero == 0 ); // nobody should be able to change this, but it's a crazy world
+    return WriteCheck(i<il.size() ? (il[i]) : zero, i<il.size());
 }
 
 //
@@ -434,6 +437,21 @@ BOOST_AUTO_TEST_CASE( test_out_of_index_behavior )
         BOOST_CHECK( (*il)[    3] == 0 );
         BOOST_CHECK( (*il)[  100] == 0 ); 
         BOOST_CHECK( (*il)[10000] == 0 );
+       
+        //
+        // Verify in-bounds assignment allowed 
+        //
+        BOOST_CHECK( *new_int_list_sp(vui({1,2,3})) == *il );
+        (*il)[2] = 5;
+        BOOST_CHECK( *new_int_list_sp(vui({5,2,3})) == *il );
+
+        //
+        // Verify out-of-range assignment is rejected
+        //
+        BOOST_CHECK_EXCEPTION( (*il)[3] = 5, 
+                               std::out_of_range,
+                               [](const std::out_of_range& ex){ return true; } 
+                             );
     }
 }
 

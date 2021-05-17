@@ -13,13 +13,10 @@
 #include <memory>
 
 class IntList;
+class WriteCheck;
 
 // list type definition
 using int_list_sp = std::shared_ptr<IntList>;
-// TODO: note this usage instead of the typedef
-//typedef std::shared_ptr< IntList > int_list_sp;
-
-// int list factory functions; yes, you only get a smart pointer to it
 
 class IntList
 //
@@ -45,23 +42,22 @@ private:
     void delete_msd();
 
 public:
-    // standard usage operators
-    unsigned int& operator[](int i);
+    // index operator; returns value-wrapper that blocks writebacks for
+    // out-of-range selections
+    WriteCheck operator[](int i);
 
     // class operators
     bool operator==(const IntList& il);     
     bool operator!=(const IntList& il);
     bool operator>=(const IntList& il);
 
+    // user-friendly string representation
     std::string str();
 
     // smart pointer only?
     //int_list_sp operator+(const int_list_sp& that);
 
-    // TODO: add >= and + operators at least, and also tests for them.
-
     int size();
-
     unsigned int msd();
     unsigned int lsd();
 
@@ -84,6 +80,37 @@ public:
     friend int_list_sp new_int_list_sp(const std::vector<unsigned int>& x);
     friend int_list_sp new_int_list_sp(const std::string& s);
     friend int_list_sp new_int_list_sp(unsigned int n);
+};
+
+//
+// class to wrap returned unsigned int reference from integer list's index overload.
+// allows blocking of writebacks
+//
+class WriteCheck
+{
+public:
+    unsigned int& checked_n;
+    bool writeback_allowed;
+
+public:
+    // consructor
+    WriteCheck(unsigned int& n, bool is_writeback_allowed) : checked_n(n), writeback_allowed(is_writeback_allowed) {}
+   
+    // allow read-access to wrapped data
+    operator unsigned int const&() { return checked_n; }
+
+    // called when user tries to modify the wrapped value. We expect that "writeback_allowed" will be
+    // false if this wrapper was generated for a value that was index'd out-of-range (but it's ok for
+    // the use to read it).
+    WriteCheck& operator=(unsigned int const& rhs)
+    {
+        if (!writeback_allowed) 
+            throw std::out_of_range("index is out of range");
+        else {
+            checked_n = rhs;
+            return *this;
+        }
+    }
 };
 
 //

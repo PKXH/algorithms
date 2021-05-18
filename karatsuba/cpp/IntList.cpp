@@ -66,10 +66,13 @@ IntList::IntList( const std::string& s, bool trim_leading_zeros)
 //
 IntList::IntList( unsigned int n )
 {
-    while (n>0) {
-        il.push_back(n%10);
-        n/=10;
-    }
+    if (n==0)
+        il.push_back(0);
+    else
+        while (n>0) {
+            il.push_back(n%10);
+            n/=10;
+        }
 
     // We expect no leading zeros from this process
     BOOST_ASSERT( this->size() <= 1 || this->msd()!=0 );
@@ -180,59 +183,6 @@ bool IntList::operator>=(const IntList& that)
 }
 
 //
-// operator that returns int_list_sp containing the sum of "this" int_list_sp and "that"
-// int_list_sp; so I'm assuming this has to be something external... or I guess it can
-// be an IntList member that returns an int_list_sp? Maybe it should be external... and
-// namespace-protected...?
-//
-//int_list_sp IntList::operator+(const int_list_sp& that)
-
-// What's the best way to handle the return? Something that needs to be copied? Or should we pass
-// an object to be filled in?
-
-// So I'm thinking maybe I need to change the writeback to extend the representation if 
-// the index on the write is out-of-bounds and the digit being written is > 0 (if it is
-// =0 then maybe just silently ignore?)
-
-// Or maybe, we can specify whether or not to get rid of leading 0's? Seems like we should
-// be able to specify the length of an all-0 list that doesn't auto-truncate. Maybe add a
-// "remove leading zeros" member? And add a flag to the constructor that decides whether to
-// apply it to the initialized value?
-
-// So my pointer thing seems a little in-elegant here, since up until now we've been able to
-// keep the smart point restriction outside of the IntList class implementation, but now we
-// have to invoke it to get our sum object to receive our calculations... or should we define
-// an external friend operator overload outside of the class?
-
-int_list_sp operator+(int_list_sp& a, int_list_sp& b) 
-{
-    // determine sizes
-    const auto this_size = a->size();
-    const auto that_size = b->size();
-    const auto  max_size = std::max(this_size, that_size);
-
-    // sooo, make a max_size+1 zero'd int array, and maybe add directly from the
-    // this and that, but capture out-of-bound indices and return zeros? Maybe a
-    // function: get_zero_safe_index(this, 5)
-    // Better yet, if the index is out of bounds, just return a zero!
-
-    auto sum = new_int_list_sp( std::vector<unsigned int>(max_size+1, 0), false );
-
-    for (int i=0; i < max_size; i++) {
-        
-        auto dgt_sum = (*a)[i] + (*b)[i] + (*sum)[i];
-        auto dgt_div = dgt_sum / 10;
-        auto dgt_mod = dgt_sum % 10;
-        (*sum)[i]    = dgt_mod;
-        (*sum)[i+1]  = dgt_div; 
-    }
-
-    sum->remove_leading_zeros();
-
-    return sum;
-}
-
-//
 // Return the size of the integer list
 //
 int IntList::size()
@@ -257,7 +207,7 @@ unsigned int IntList::lsd()
 }
 
 //
-// A string representation of the contents of  integer list
+// A string representation of the contents of integer list
 // 
 std::string IntList::str()
 {
@@ -271,6 +221,22 @@ std::string IntList::str()
     str << "}\n";
 
     return str.str(); 
+}
+
+//
+// A unsigned int representation of the contents of integer list (if it fits)
+//
+unsigned int IntList::uint()
+{
+    unsigned int sum = 0;
+    unsigned int ten_to_the_i = 1;
+
+    for (unsigned int i=0; i<il.size(); i++) {
+        sum += ten_to_the_i * il[i];
+        ten_to_the_i *= 10;
+    }
+
+    return sum;
 }
 
 //
@@ -303,6 +269,45 @@ int_list_sp new_int_list_sp(const std::string& s, bool trim_leading_zeros)
 int_list_sp new_int_list_sp(unsigned int n)
 {
     return int_list_sp( new IntList(n) );
+}
+
+//
+// operator for comparing two integer lists referenced by smart pointers
+//
+bool operator==(int_list_sp a, int_list_sp b)
+{
+    return *a == *b;
+}
+
+//
+// operator for adding two integer lists referenced by smart pointers, resulting
+// in an integer list sum also referenced by a smart pointer
+//
+int_list_sp operator+(int_list_sp a, int_list_sp b) 
+{
+    // determine sizes
+    const auto this_size = a->size();
+    const auto that_size = b->size();
+    const auto  max_size = std::max(this_size, that_size);
+
+    // sum will go in here; make sure it's big enough to hold it and that we
+    // can writeback the sum's digits
+    auto sum = new_int_list_sp( std::vector<unsigned int>(max_size+1, 0), false );
+
+    // starting from lsd, add and carry up to msd 
+    for (int i=0; i < max_size; i++) {
+        
+        auto dgt_sum = (*a)[i] + (*b)[i] + (*sum)[i];
+        auto dgt_div = dgt_sum / 10;
+        auto dgt_mod = dgt_sum % 10;
+        (*sum)[i]    = dgt_mod;
+        (*sum)[i+1]  = dgt_div; 
+    }
+
+    // if there was no final carry, clean up the space for it
+    sum->remove_leading_zeros();
+
+    return sum;
 }
 
 #ifdef BUILD_UNIT_TEST
@@ -516,19 +521,42 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
 }
 
 BOOST_AUTO_TEST_CASE( test_integer_list_addition )
-{   
+{   // 
+    // make sure integer list addition is working as expected
+    //
     using vui = std::vector<unsigned int>;
 
-    auto il1 = new_int_list_sp(923);
-    auto il2 = new_int_list_sp(211);
+    //
+    // specific edge cases
+    //
+    BOOST_CHECK( new_int_list_sp(0)                + new_int_list_sp(0)                == new_int_list_sp(0)     );
+    BOOST_CHECK( new_int_list_sp(vui({0,0,0,0}))   + new_int_list_sp(0)                == new_int_list_sp(0)     );
+    BOOST_CHECK( new_int_list_sp(0)                + new_int_list_sp(vui({0,0,0,0}))   == new_int_list_sp(0)     );
+    BOOST_CHECK( new_int_list_sp(123)              + new_int_list_sp(456)              == new_int_list_sp(579)   );
+    BOOST_CHECK( new_int_list_sp(vui({0,0,1,2,3})) + new_int_list_sp(456)              == new_int_list_sp(579)   );
+    BOOST_CHECK( new_int_list_sp(123)              + new_int_list_sp(vui({0,0,4,5,6})) == new_int_list_sp(579)   );
+    BOOST_CHECK( new_int_list_sp(9999)             + new_int_list_sp(1)                == new_int_list_sp(10000) );
 
-//    auto v = std::vector<unsigned int>(12,0);
-//    auto ilv = new_int_list_sp(v,false);
-//    std::cout << ilv->str();
+    //
+    // double-checking random values with c++ math
+    //
+    const unsigned int  num_random_tests   = 1000;
 
-    auto sum = il1 + il2;
+    std::srand(std::time(nullptr));
+    int random_variable = std::rand();
 
-    std::cout << sum->str();
+    for (auto i=0; i < num_random_tests; i++ ) {
+
+        auto a = std::rand();
+        auto b = std::rand();
+        auto c = a + b;
+        auto d = (new_int_list_sp(a) + new_int_list_sp(b))->uint();
+
+        std::stringstream error_msg_ss;
+        error_msg_ss << "random test #" << i << ": " << a << " + " << b << " = " << c
+                     << " (was expecting " << d << ")";
+        BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
+    }
 }
 
 #endif // BUILD_UNIT_TEST

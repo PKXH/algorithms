@@ -239,50 +239,111 @@ unsigned int IntList::uint()
     return sum;
 }
 
-//
+// *******************************************************************************
+// int_list shared pointer factory functions
+// *******************************************************************************
+
 // create an int_list shared pointer from another int list
-//
 int_list_sp new_int_list_sp(const IntList& il, bool trim_leading_zeros) 
-{
+{ 
     return int_list_sp( new IntList(il, trim_leading_zeros) ); 
 }
 
-//
 // create an int_list shared pointer from an std::vector integer list reference
-//
 int_list_sp new_int_list_sp(const std::vector<unsigned int>& v, bool trim_leading_zeros)
 {
     return int_list_sp( new IntList(v, trim_leading_zeros) ); 
 }
 
-//
 // create an int_list shared pointer from std::string integer string
-//
 int_list_sp new_int_list_sp(const std::string& s, bool trim_leading_zeros)
 {
     return int_list_sp( new IntList(s, trim_leading_zeros) );
 }
 
-//
 // create an int_list shared pointer from unsigned int value
-//
 int_list_sp new_int_list_sp(unsigned int n)
 {
     return int_list_sp( new IntList(n) );
 }
 
-//
+#ifdef BUILD_UNIT_TEST
+
+BOOST_AUTO_TEST_CASE( test_integer_list_factory_functions )
+{   //
+    // verify that all the factory functions generate the same representation
+    // for equivalent initialization values
+    //
+    using vui = std::vector<unsigned int>;
+
+    const unsigned int num_tests = 1000;
+    for (int i=0; i < num_tests; i++) {
+    
+        // generate a random unsigned int value
+        std::srand(std::time(nullptr));
+        unsigned int rval = std::rand(); 
+
+        // convert random unsigned int value to a string
+        std::stringstream rval_ss;
+        rval_ss << rval;
+
+        // convert random unsigned int value to unsigned int vector of digits 
+        unsigned int val = rval;
+        std::vector<unsigned int> rval_vec;
+        if (val==0)
+            rval_vec.push_back(0);
+        else
+            while (val > 0) { 
+                rval_vec.push_back( val%10 );
+                val/=10;
+        }
+        std::reverse(rval_vec.begin(), rval_vec.end());
+
+        // make four int_list_sp with the same value using different 
+        // initialization methods
+        auto ilsp1 = new_int_list_sp(rval         );
+        auto ilsp2 = new_int_list_sp(rval_ss.str());
+        auto ilsp3 = new_int_list_sp(rval_vec     );
+        auto ilsp4 = new_int_list_sp(*ilsp1       );
+
+        // check every one against each other; they should all represent the 
+        // same number
+        BOOST_CHECK(ilsp1 == ilsp2);
+        BOOST_CHECK(ilsp1 == ilsp3);
+        BOOST_CHECK(ilsp1 == ilsp4);
+        BOOST_CHECK(ilsp2 == ilsp3);
+        BOOST_CHECK(ilsp2 == ilsp4);
+        BOOST_CHECK(ilsp3 == ilsp4);
+    }
+}
+
+#endif // BUILD_UNIT_TEST
+
+// *******************************************************************************
 // operator for comparing two integer lists referenced by smart pointers
-//
+// *******************************************************************************
 bool operator==(int_list_sp a, int_list_sp b)
 {
     return *a == *b;
 }
 
-//
+#ifdef BUILD_UNIT_TEST
+
+BOOST_AUTO_TEST_CASE( test_integer_list_equality )
+{   //
+    // make sure integer list equality is working as expected
+    //
+    BOOST_CHECK(     new_int_list_sp(0      ) == new_int_list_sp(0      )   );
+    BOOST_CHECK(     new_int_list_sp(1234567) == new_int_list_sp(1234567)   );
+    BOOST_CHECK( ! ( new_int_list_sp(1234567) == new_int_list_sp(7654321) ) );
+}
+
+#endif // BUILD_UNIT_TEST
+
+// *******************************************************************************
 // operator for adding two integer lists referenced by smart pointers, resulting
 // in an integer list sum also referenced by a smart pointer
-//
+// *******************************************************************************
 int_list_sp operator+(int_list_sp a, int_list_sp b) 
 {
     // determine sizes
@@ -309,6 +370,49 @@ int_list_sp operator+(int_list_sp a, int_list_sp b)
 
     return sum;
 }
+
+#ifdef BUILD_UNIT_TEST
+
+BOOST_AUTO_TEST_CASE( test_integer_list_addition )
+{   // 
+    // make sure integer list addition is working as expected
+    //
+    using vui = std::vector<unsigned int>;
+
+    //
+    // specific edge cases
+    //
+    BOOST_CHECK( new_int_list_sp(0)                + new_int_list_sp(0)                == new_int_list_sp(0)     );
+    BOOST_CHECK( new_int_list_sp(vui({0,0,0,0}))   + new_int_list_sp(0)                == new_int_list_sp(0)     );
+    BOOST_CHECK( new_int_list_sp(0)                + new_int_list_sp(vui({0,0,0,0}))   == new_int_list_sp(0)     );
+    BOOST_CHECK( new_int_list_sp(123)              + new_int_list_sp(456)              == new_int_list_sp(579)   );
+    BOOST_CHECK( new_int_list_sp(vui({0,0,1,2,3})) + new_int_list_sp(456)              == new_int_list_sp(579)   );
+    BOOST_CHECK( new_int_list_sp(123)              + new_int_list_sp(vui({0,0,4,5,6})) == new_int_list_sp(579)   );
+    BOOST_CHECK( new_int_list_sp(9999)             + new_int_list_sp(1)                == new_int_list_sp(10000) );
+
+    //
+    // double-checking random values with c++ math
+    //
+    const unsigned int  num_random_tests   = 1000;
+
+    std::srand(std::time(nullptr));
+    int random_variable = std::rand();
+
+    for (auto i=0; i < num_random_tests; i++ ) {
+
+        auto a = std::rand();
+        auto b = std::rand();
+        auto c = a + b;
+        auto d = (new_int_list_sp(a) + new_int_list_sp(b))->uint();
+
+        std::stringstream error_msg_ss;
+        error_msg_ss << "random test #" << i << ": " << a << " + " << b << " = " << c
+                     << " (was expecting " << d << ")";
+        BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
+    }
+}
+
+#endif // BUILD_UNIT_TEST
 
 #ifdef BUILD_UNIT_TEST
 
@@ -520,43 +624,6 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
     }
 }
 
-BOOST_AUTO_TEST_CASE( test_integer_list_addition )
-{   // 
-    // make sure integer list addition is working as expected
-    //
-    using vui = std::vector<unsigned int>;
 
-    //
-    // specific edge cases
-    //
-    BOOST_CHECK( new_int_list_sp(0)                + new_int_list_sp(0)                == new_int_list_sp(0)     );
-    BOOST_CHECK( new_int_list_sp(vui({0,0,0,0}))   + new_int_list_sp(0)                == new_int_list_sp(0)     );
-    BOOST_CHECK( new_int_list_sp(0)                + new_int_list_sp(vui({0,0,0,0}))   == new_int_list_sp(0)     );
-    BOOST_CHECK( new_int_list_sp(123)              + new_int_list_sp(456)              == new_int_list_sp(579)   );
-    BOOST_CHECK( new_int_list_sp(vui({0,0,1,2,3})) + new_int_list_sp(456)              == new_int_list_sp(579)   );
-    BOOST_CHECK( new_int_list_sp(123)              + new_int_list_sp(vui({0,0,4,5,6})) == new_int_list_sp(579)   );
-    BOOST_CHECK( new_int_list_sp(9999)             + new_int_list_sp(1)                == new_int_list_sp(10000) );
-
-    //
-    // double-checking random values with c++ math
-    //
-    const unsigned int  num_random_tests   = 1000;
-
-    std::srand(std::time(nullptr));
-    int random_variable = std::rand();
-
-    for (auto i=0; i < num_random_tests; i++ ) {
-
-        auto a = std::rand();
-        auto b = std::rand();
-        auto c = a + b;
-        auto d = (new_int_list_sp(a) + new_int_list_sp(b))->uint();
-
-        std::stringstream error_msg_ss;
-        error_msg_ss << "random test #" << i << ": " << a << " + " << b << " = " << c
-                     << " (was expecting " << d << ")";
-        BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
-    }
-}
 
 #endif // BUILD_UNIT_TEST

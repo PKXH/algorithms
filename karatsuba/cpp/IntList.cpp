@@ -276,8 +276,8 @@ BOOST_AUTO_TEST_CASE( test_integer_list_factory_functions )
     //
     using vui = std::vector<unsigned int>;
 
-    const unsigned int num_tests = 1000;
-    for (int i=0; i < num_tests; i++) {
+    const unsigned int num_random_tests = 1000;
+    for (int i=0; i < num_random_tests; i++) {
     
         // generate a random unsigned int value
         std::srand(std::time(nullptr));
@@ -301,10 +301,10 @@ BOOST_AUTO_TEST_CASE( test_integer_list_factory_functions )
 
         // make four int_list_sp with the same value using different 
         // initialization methods
-        auto ilsp1 = new_int_list_sp(rval         );
-        auto ilsp2 = new_int_list_sp(rval_ss.str());
-        auto ilsp3 = new_int_list_sp(rval_vec     );
-        auto ilsp4 = new_int_list_sp(*ilsp1       );
+        auto ilsp1 = new_int_list_sp( rval          );
+        auto ilsp2 = new_int_list_sp( rval_ss.str() );
+        auto ilsp3 = new_int_list_sp( rval_vec      );
+        auto ilsp4 = new_int_list_sp( *ilsp1        );
 
         // check every one against each other; they should all represent the 
         // same number
@@ -322,6 +322,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_factory_functions )
 // *******************************************************************************
 // operator for comparing two integer lists referenced by smart pointers
 // *******************************************************************************
+//
 bool operator==(int_list_sp a, int_list_sp b)
 {
     return *a == *b;
@@ -344,6 +345,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_equality )
 // operator for adding two integer lists referenced by smart pointers, resulting
 // in an integer list sum also referenced by a smart pointer
 // *******************************************************************************
+//
 int_list_sp operator+(int_list_sp a, int_list_sp b) 
 {
     // determine sizes
@@ -399,7 +401,10 @@ BOOST_AUTO_TEST_CASE( test_integer_list_addition )
     int random_variable = std::rand();
 
     for (auto i=0; i < num_random_tests; i++ ) {
-
+        //
+        // generate two random numbers, add them, and also add their integer
+        // list equivalents; verify that the two sums match.
+        //
         auto a = std::rand();
         auto b = std::rand();
         auto c = a + b;

@@ -53,9 +53,6 @@ public:
     // user-friendly string representation
     std::string str();
 
-    // smart pointer only?
-    //int_list_sp operator+(const int_list_sp& that);
-
     int size();
     unsigned int msd();
     unsigned int lsd();
@@ -123,5 +120,8 @@ int_list_sp new_int_list_sp(const IntList& x, bool trim_leading_zeros=true);
 int_list_sp new_int_list_sp(const std::vector<unsigned int>& x, bool trim_leading_zeros=true);
 int_list_sp new_int_list_sp(const std::string& s, bool trim_leading_zeros=true);
 int_list_sp new_int_list_sp(unsigned int n);
+
+// addition operator for smart pointer-referenced integer lists
+int_list_sp operator+(int_list_sp& a, int_list_sp& b);
 
 #endif // __int_list_h

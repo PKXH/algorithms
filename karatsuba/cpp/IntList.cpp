@@ -199,30 +199,38 @@ bool IntList::operator>=(const IntList& that)
 // "remove leading zeros" member? And add a flag to the constructor that decides whether to
 // apply it to the initialized value?
 
-//IntList add(IntList& a, IntList& b, IntList& sum) 
-//{
-//    // determine sizes
-//    const auto this_size = this->size();
-//    const auto that_size = that->size();
-//    const auto max_size  = std::max(this_size, that_size);
-//
-//    // sooo, make a max_size+1 zero'd int array, and maybe add directly from the
-//    // this and that, but capture out-of-bound indices and return zeros? Maybe a
-//    // function: get_zero_safe_index(this, 5)
-//    // Better yet, if the index is out of bounds, just return a zero!
-//
-//    auto sum = new_int_list_sp(0);
-//
-//    for (int i=0; i < max_size-1; i++) {
-//        auto dgt_sum = (*this)[i] + (*that)[i] + (*sum)[i];
-//        auto dgt_div = dgt_sum / 10;
-//        auto dgt_mod = dgt_sum % 10;
-//        (*sum)[i]    = dgt_div;
-//        (*sum)[i+1]  = dgt_mod; 
-//    }
-//
-//    return sum;
-//}
+// So my pointer thing seems a little in-elegant here, since up until now we've been able to
+// keep the smart point restriction outside of the IntList class implementation, but now we
+// have to invoke it to get our sum object to receive our calculations... or should we define
+// an external friend operator overload outside of the class?
+
+int_list_sp operator+(int_list_sp& a, int_list_sp& b) 
+{
+    // determine sizes
+    const auto this_size = a->size();
+    const auto that_size = b->size();
+    const auto  max_size = std::max(this_size, that_size);
+
+    // sooo, make a max_size+1 zero'd int array, and maybe add directly from the
+    // this and that, but capture out-of-bound indices and return zeros? Maybe a
+    // function: get_zero_safe_index(this, 5)
+    // Better yet, if the index is out of bounds, just return a zero!
+
+    auto sum = new_int_list_sp( std::vector<unsigned int>(max_size+1, 0), false );
+
+    for (int i=0; i < max_size; i++) {
+        
+        auto dgt_sum = (*a)[i] + (*b)[i] + (*sum)[i];
+        auto dgt_div = dgt_sum / 10;
+        auto dgt_mod = dgt_sum % 10;
+        (*sum)[i]    = dgt_mod;
+        (*sum)[i+1]  = dgt_div; 
+    }
+
+    sum->remove_leading_zeros();
+
+    return sum;
+}
 
 //
 // Return the size of the integer list
@@ -505,6 +513,22 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
                                [](const std::out_of_range& ex){ return true; } 
                              );
     }
+}
+
+BOOST_AUTO_TEST_CASE( test_integer_list_addition )
+{   
+    using vui = std::vector<unsigned int>;
+
+    auto il1 = new_int_list_sp(923);
+    auto il2 = new_int_list_sp(211);
+
+//    auto v = std::vector<unsigned int>(12,0);
+//    auto ilv = new_int_list_sp(v,false);
+//    std::cout << ilv->str();
+
+    auto sum = il1 + il2;
+
+    std::cout << sum->str();
 }
 
 #endif // BUILD_UNIT_TEST

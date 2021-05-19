@@ -206,9 +206,10 @@ unsigned int IntList::lsd()
     return il.front();
 }
 
-//
+// *******************************************************************************
 // A string representation of the contents of integer list
-// 
+// *******************************************************************************
+//
 std::string IntList::str()
 {
     std::stringstream str;
@@ -223,8 +224,42 @@ std::string IntList::str()
     return str.str(); 
 }
 
-//
+#ifdef BUILD_UNIT_TEST
+
+BOOST_AUTO_TEST_CASE( test_integer_list_string_representation ) {
+
+    const unsigned int num_random_tests = 1000;
+    for (int i=0; i < num_random_tests; i++) {
+    
+        // generate a random unsigned int value
+        std::srand(std::time(nullptr));
+        unsigned int rval = std::rand(); 
+        auto il = new_int_list_sp( rval );
+
+        // convert random unsigned int value to a string
+        std::stringstream rval_ss;
+        rval_ss << rval;
+
+        // strip out non-numeric characters from string representation
+        std::stringstream ilstr;
+        for (auto& i : il->str())
+            if (std::isdigit(i))
+                ilstr << i;
+
+        // in case things go wrong, let the user know the identity of the culprits
+        std::stringstream error_msg;
+        error_msg << "(" << rval << " != " << ilstr.str() << ")";
+
+        // make sure the uint() val and the initialization value are identical
+        BOOST_CHECK_MESSAGE( ilstr.str() == rval_ss.str(), error_msg.str() );
+    }
+}
+
+#endif // BUILD_UNIT_TEST
+
+// *******************************************************************************
 // A unsigned int representation of the contents of integer list (if it fits)
+// *******************************************************************************
 //
 unsigned int IntList::uint()
 {
@@ -238,6 +273,25 @@ unsigned int IntList::uint()
 
     return sum;
 }
+
+#ifdef BUILD_UNIT_TEST
+
+BOOST_AUTO_TEST_CASE( test_integer_list_uint_representation ) {
+
+    const unsigned int num_random_tests = 1000;
+    for (int i=0; i < num_random_tests; i++) {
+    
+        // generate a random unsigned int value
+        std::srand(std::time(nullptr));
+        unsigned int rval = std::rand(); 
+        auto il = new_int_list_sp( rval );
+
+        // make sure the uint() val and the initialization value are identical
+        BOOST_CHECK( il->uint() == rval );
+    }
+}
+
+#endif // BUILD_UNIT_TEST
 
 // *******************************************************************************
 // int_list shared pointer factory functions

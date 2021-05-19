@@ -3,6 +3,10 @@
 //
 // created by PKXH on 25 Apr 2021
 //
+// Method, function, and operator definitions for a representation for 
+// arbitrarily-lengthed integers as a list of single digits 
+// e.g., 3238675309 = {3,2,3,8,6,7,5,3,0,9}
+//
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -30,7 +34,7 @@ IntList::IntList( const IntList& il, bool trim_leading_zeros )
 }
 
 // *******************************************************************************
-// construct this IntList using an unsigned in vector reference
+// construct this IntList using an unsigned int vector reference
 // *******************************************************************************
 //
 IntList::IntList( const std::vector<unsigned int>& v, bool trim_leading_zeros ) 
@@ -217,7 +221,8 @@ BOOST_AUTO_TEST_CASE( test_out_of_index_behavior )
     using vui = std::vector<unsigned int>;
 
     {   //
-        // Make sure it returns valid initialized values, and zeros everywhere else
+        // Verify that construction returns valid initialized values, and 
+        // zeros everywhere else
         //
         auto il = new_int_list_sp(123);
 
@@ -254,31 +259,27 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
     //
     using vui = std::vector<unsigned int>;
 
-    {   //
-        // starting with all-zero list
-        //
-        auto il = new_int_list_sp(vui({0,0,0,0,0,0,0,0,0,0}), false);
+    // starting with all-zero list
+    auto il = new_int_list_sp(vui({0,0,0,0,0,0,0,0,0,0}), false);
 
-        (*il)[8] = 1;
-        (*il)[3] = 2;
+    (*il)[8] = 1;
+    (*il)[3] = 2;
 
-        // verify new values were written to the expected offsets, and that the
-        // leading zero is intact
-        BOOST_CHECK( *il == *new_int_list_sp(vui({0,1,0,0,0,0,2,0,0,0}), false) );
+    // verify new values were written to the expected offsets, and that the
+    // leading zero is intact
+    BOOST_CHECK( *il == *new_int_list_sp(vui({0,1,0,0,0,0,2,0,0,0}), false) );
 
-        il->remove_leading_zeros();
+    il->remove_leading_zeros();
 
-        // verify leading zero was chopped off
-        BOOST_CHECK( *il == *new_int_list_sp(vui({1,0,0,0,0,2,0,0,0}), false) );
+    // verify leading zero was chopped off
+    BOOST_CHECK( *il == *new_int_list_sp(vui({1,0,0,0,0,2,0,0,0}), false) );
 
-        //
-        // Verify newly-out-of-range assignment is rejected
-        //
-        BOOST_CHECK_EXCEPTION( (*il)[9] = 5, 
-                               std::out_of_range,
-                               [](const std::out_of_range& ex){ return true; } 
-                             );
-    }
+    // Verify newly-out-of-range assignment is rejected
+    BOOST_CHECK_EXCEPTION( (*il)[9] = 5, 
+                           std::out_of_range,
+                           [](const std::out_of_range& ex){ return true; } 
+                         );
+    
 }
 
 #endif // BUILD_UNIT_TEST
@@ -395,28 +396,29 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
     BOOST_CHECK( ! ( *new_int_list_sp( vui({0,0,0,0}  ) ) >= *new_int_list_sp( vui({0,0,0,1}) ) ) );
     BOOST_CHECK( ! ( *new_int_list_sp( vui({0}        ) ) >= *new_int_list_sp( vui({0,0,0,1}) ) ) );
 
-    //
-    // double-check random values with c++ math
-    //
-    const unsigned int  num_random_tests   = 1000;
+    {   //
+        // double-check random values with c++ math
+        //
+        const unsigned int  num_random_tests   = 1000;
 
-    std::srand(std::time(nullptr));
-    int random_variable = std::rand();
+        std::srand(std::time(nullptr));
+        int random_variable = std::rand();
 
-    for (auto i=0; i < num_random_tests; i++ ) {
+        for (auto i=0; i < num_random_tests; i++ ) {
 
-        auto a = std::rand();
-        auto b = std::rand();
+            auto a = std::rand();
+            auto b = std::rand();
 
-        std::stringstream error_msg_ss;
-        error_msg_ss << "random test #" << i << ": " << a << " >= " << b;
+            std::stringstream error_msg_ss;
+            error_msg_ss << "random test #" << i << ": " << a << " >= " << b;
 
-        if (a >= b) {
-            error_msg_ss << " was expecting TRUE";
-            BOOST_CHECK_MESSAGE( *new_int_list_sp(a) >= *new_int_list_sp(b), error_msg_ss.str() );
-        } else {
-            error_msg_ss << " was expecting FALSE";
-            BOOST_CHECK_MESSAGE( *new_int_list_sp(b) >= *new_int_list_sp(a), error_msg_ss.str() );
+            if (a >= b) {
+                error_msg_ss << " was expecting TRUE";
+                BOOST_CHECK_MESSAGE( *new_int_list_sp(a) >= *new_int_list_sp(b), error_msg_ss.str() );
+            } else {
+                error_msg_ss << " was expecting FALSE";
+                BOOST_CHECK_MESSAGE( *new_int_list_sp(b) >= *new_int_list_sp(a), error_msg_ss.str() );
+            }
         }
     }
 }
@@ -690,28 +692,29 @@ BOOST_AUTO_TEST_CASE( test_integer_list_addition )
     BOOST_CHECK( new_int_list_sp(123)              + new_int_list_sp(vui({0,0,4,5,6})) == new_int_list_sp(579)   );
     BOOST_CHECK( new_int_list_sp(9999)             + new_int_list_sp(1)                == new_int_list_sp(10000) );
 
-    //
-    // double-checking random values with c++ math
-    //
-    const unsigned int  num_random_tests   = 1000;
-
-    std::srand(std::time(nullptr));
-    int random_variable = std::rand();
-
-    for (auto i=0; i < num_random_tests; i++ ) {
+    {   //
+        // double-checking random values with c++ math
         //
-        // generate two random numbers, add them, and also add their integer
-        // list equivalents; verify that the two sums match.
-        //
-        auto a = std::rand();
-        auto b = std::rand();
-        auto c = a + b;
-        auto d = (new_int_list_sp(a) + new_int_list_sp(b))->uint();
+        const unsigned int  num_random_tests   = 1000;
 
-        std::stringstream error_msg_ss;
-        error_msg_ss << "random test #" << i << ": " << a << " + " << b << " = " << c
-                     << " (was expecting " << d << ")";
-        BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
+        std::srand(std::time(nullptr));
+        int random_variable = std::rand();
+
+        for (auto i=0; i < num_random_tests; i++ ) {
+            //
+            // generate two random numbers, add them, and also add their integer
+            // list equivalents; verify that the two sums match.
+            //
+            auto a = std::rand();
+            auto b = std::rand();
+            auto c = a + b;
+            auto d = (new_int_list_sp(a) + new_int_list_sp(b))->uint();
+
+            std::stringstream error_msg_ss;
+            error_msg_ss << "random test #" << i << ": " << a << " + " << b << " = " << c
+                         << " (was expecting " << d << ")";
+            BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
+        }
     }
 }
 

@@ -695,7 +695,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_addition )
     {   //
         // double-checking random values with c++ math
         //
-        const unsigned int  num_random_tests   = 1000;
+        const unsigned int num_random_tests = 1000;
 
         std::srand(std::time(nullptr));
         int random_variable = std::rand();
@@ -715,6 +715,118 @@ BOOST_AUTO_TEST_CASE( test_integer_list_addition )
                          << " (was expecting " << d << ")";
             BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
         }
+    }
+}
+
+#endif // BUILD_UNIT_TEST
+
+// *******************************************************************************
+// Return the difference (in integer list form) of two non-negative
+// integer lists, with the requirement that a>=b.
+// *******************************************************************************
+//
+int_list_sp operator-(int_list_sp a, int_list_sp b)
+{   //
+    // make sure a>=b
+    //
+    if (a->uint() < b->uint()) {
+        std::stringstream error_msg_ss;
+        error_msg_ss << "a (" << a->uint() << ") must be >= (" << b->uint() << ")";
+        throw std::invalid_argument(error_msg_ss.str());
+    }
+
+    //
+    // make a note of our sizes; find the biggest
+    //
+    auto a_size = a->size();
+    auto b_size = b->size();
+    auto [max_size, min_size] = a_size >= b_size 
+                              ? std::make_pair(a_size, b_size) 
+                              : std::make_pair(b_size, a_size);
+    //
+    // make copies of our inputs since we're going to be changing them during
+    // the calculation
+    //
+    auto ap   = new_int_list_sp(*a);
+    auto bp   = new_int_list_sp(*b);
+
+    std::vector<unsigned int> diff;
+
+    for (auto i=0; i < max_size; i++) {
+
+        int d = (*ap)[i] - (*bp)[i];
+        if (d < 0) {
+            auto ci = 1;
+            while ((*ap)[i+ci] == 0) {
+                (*ap)[i+ci] = 9;
+                ci += 1;
+            }
+            (*ap)[i+ci] = (*ap)[i+ci] - 1;
+            d += 10;
+        }
+        diff.insert(diff.begin(),d);
+    }
+
+    return new_int_list_sp(diff);
+}
+
+#ifdef BUILD_UNIT_TEST
+
+BOOST_AUTO_TEST_CASE( test_integer_list_subtraction )
+{   //
+    // make sure the integer list subtraction is working as expected
+    //
+    using vui = std::vector<unsigned int>;
+
+    {   //
+        // make sure that invalid string inputs are rejected and called out by name
+        //
+        auto a = new_int_list_sp(998);
+        auto b = new_int_list_sp(999);
+        std::stringstream expected_error_msg_ss;
+        expected_error_msg_ss << "a (" << a->uint() << ") must be >= (" << b->uint() << ")";
+        BOOST_CHECK_EXCEPTION( a - b, 
+                               std::invalid_argument,
+                               [&](const std::invalid_argument& ex){ 
+                                   BOOST_CHECK_EQUAL(ex.what(), expected_error_msg_ss.str());
+                                   return true;
+                               }
+                             );
+    }
+
+    //
+    // specific edge cases
+    //
+    BOOST_CHECK( new_int_list_sp(0)                - new_int_list_sp(0)                = new_int_list_sp(0)          );
+    BOOST_CHECK( new_int_list_sp(vui({0,0,0,0}))   - new_int_list_sp(vui({0}))         = new_int_list_sp(vui({0}))   );
+    BOOST_CHECK( new_int_list_sp(vui({0}))         - new_int_list_sp(vui({0,0,0,0}))   = new_int_list_sp(vui({0}))   );
+    BOOST_CHECK( new_int_list_sp(456)              - new_int_list_sp(123)              = new_int_list_sp(333)        );
+    BOOST_CHECK( new_int_list_sp(456)              - new_int_list_sp(vui({0,0,1,2,3})) = new_int_list_sp(333)        );
+    BOOST_CHECK( new_int_list_sp(vui({0,0,4,5,6})) - new_int_list_sp(123)              = new_int_list_sp(333)        );
+    BOOST_CHECK( new_int_list_sp(10000)            - new_int_list_sp(1)                = new_int_list_sp(9999)       );
+    BOOST_CHECK( new_int_list_sp(1792339757)       - new_int_list_sp(218598761)        = new_int_list_sp(1573740996) );
+
+    //
+    // double-checking random values with c++ math
+    //
+    const unsigned int num_random_tests = 1000;
+    int random_variable = std::rand();
+
+    for (auto i=1; i <= num_random_tests; i++ ) {
+        //
+        // generate two random numbers; subtract the bigger one from the smaller one, 
+        // and also their integer list equivalents; verify that the two differences match.
+        //
+        auto a = std::rand();
+        auto b = std::rand();
+        auto [bigger, smaller] = a>b ? std::make_pair(a,b) : std::make_pair(b,a);
+        auto c = bigger - smaller;
+        auto d = new_int_list_sp(bigger) - new_int_list_sp(smaller);
+
+        std::stringstream error_msg_ss;
+        error_msg_ss << "random test #" << i << ": " << bigger << " - " << smaller << " = " << c
+                     << " (but we got " << d->uint() << ")";
+        BOOST_CHECK_MESSAGE(c == d->uint(), error_msg_ss.str());
     }
 }
 

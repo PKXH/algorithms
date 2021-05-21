@@ -125,5 +125,6 @@ int_list_sp new_int_list_sp(unsigned int n);
 // operators for smart pointer-referenced integer lists
 bool operator==(int_list_sp a, int_list_sp b);
 int_list_sp operator+(int_list_sp a, int_list_sp b);
+int_list_sp operator-(int_list_sp a, int_list_sp b);
 
 #endif // __int_list_h

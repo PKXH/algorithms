@@ -402,7 +402,6 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
         const unsigned int  num_random_tests   = 1000;
 
         std::srand(std::time(nullptr));
-        int random_variable = std::rand();
 
         for (auto i=0; i < num_random_tests; i++ ) {
 
@@ -698,7 +697,6 @@ BOOST_AUTO_TEST_CASE( test_integer_list_addition )
         const unsigned int num_random_tests = 1000;
 
         std::srand(std::time(nullptr));
-        int random_variable = std::rand();
 
         for (auto i=0; i < num_random_tests; i++ ) {
             //
@@ -810,7 +808,6 @@ BOOST_AUTO_TEST_CASE( test_integer_list_subtraction )
     // double-checking random values with c++ math
     //
     const unsigned int num_random_tests = 1000;
-    int random_variable = std::rand();
 
     for (auto i=1; i <= num_random_tests; i++ ) {
         //

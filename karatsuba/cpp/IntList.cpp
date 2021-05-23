@@ -12,10 +12,18 @@
 #include <string>
 #include "IntList.h"
 
-#ifdef BUILD_UNIT_TEST
-#define BOOST_TEST_MODULE IntListTest
+// use this define to run unit tests without externally-defined test runner
+#if defined(BUILD_INTLIST_UNIT_TEST_RUNNER)
+#define BOOST_TEST_MODULE IntList Test
+#define BUILD_UNIT_TEST
 #include <boost/test/included/unit_test.hpp>
+
+// use these defines ONLY when linking to an externally-defined test runner
+#elif defined(BUILD_INTLIST_UNIT_TESTS) || defined(BUILD_ALL_UNIT_TESTS) 
+#define BUILD_UNIT_TEST
+#include <boost/test/unit_test.hpp>
 #endif
+
 
 // *******************************************************************************
 // IntList constructors
@@ -86,8 +94,10 @@ IntList::IntList( unsigned int n )
             n/=10;
         }
 
+#ifdef BUILD_UNIT_TEST
     // We expect no leading zeros from this process
     BOOST_ASSERT( this->size() <= 1 || this->msd()!=0 );
+#endif
 }
 
 #ifdef BUILD_UNIT_TEST
@@ -208,7 +218,12 @@ WriteCheck IntList::operator[](unsigned int i)
     // zero padding and don't allow out-of-range write-backs
     // 
     static unsigned int zero = 0;
-    BOOST_ASSERT( zero == 0 ); // nobody should be able to change this, but it's a crazy world
+
+#ifdef BUILD_UNIT_TEST
+    // nobody should be able to change this, but it's a crazy world
+    BOOST_ASSERT( zero == 0 ); 
+#endif
+
     return WriteCheck(i<il.size() ? (il[i]) : zero, i<il.size());
 }
 
@@ -265,14 +280,18 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
     (*il)[8] = 1;
     (*il)[3] = 2;
 
+#ifdef BUILD_UNIT_TEST
     // verify new values were written to the expected offsets, and that the
     // leading zero is intact
     BOOST_CHECK( *il == *new_int_list_sp(vui({0,1,0,0,0,0,2,0,0,0}), false) );
+#endif 
 
     il->remove_leading_zeros();
 
+#ifdef BUILD_UNIT_TEST
     // verify leading zero was chopped off
     BOOST_CHECK( *il == *new_int_list_sp(vui({1,0,0,0,0,2,0,0,0}), false) );
+#endif
 
     // Verify newly-out-of-range assignment is rejected
     BOOST_CHECK_EXCEPTION( (*il)[9] = 5, 
@@ -352,6 +371,7 @@ bool IntList::operator>=(const IntList& that)
     auto a = new_int_list_sp(*this);
     auto b = new_int_list_sp(that);
 
+#ifdef BUILD_UNIT_TEST
     // assert that we have no leading zeros; since our constructor is expected to not
     // allow this to happen, it would be a surprise here
   
@@ -360,6 +380,7 @@ bool IntList::operator>=(const IntList& that)
 
     BOOST_CHECK_MESSAGE( a->size() <= 1 || a->msd()!=0, error_msg_ss.str() );
     BOOST_CHECK_MESSAGE( b->size() <= 1 || b->msd()!=0, error_msg_ss.str() );
+#endif
 
     return greater_than_or_equal_to(a,b); 
 }

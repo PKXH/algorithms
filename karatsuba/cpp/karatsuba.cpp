@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE( test_karatusba_multiplication )
     using vui = std::vector<unsigned int>;
 
     //
-    // specific edge cases
+    // specific simple cases
     //
     BOOST_CHECK( karatsuba( new_int_list_sp(0    ), new_int_list_sp(0)     ) == new_int_list_sp(0)       );
     BOOST_CHECK( karatsuba( new_int_list_sp(1    ), new_int_list_sp(1)     ) == new_int_list_sp(1)       );

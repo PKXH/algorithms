@@ -3,7 +3,7 @@
 //
 // Created by PKXH on 22 May 2021
 //
-// Declarations for Karatsuba multiplcation function
+// Declarations for Karatsuba multiplication function
 //
 #ifndef __karatsuba_h
 #define __karatsuba_h

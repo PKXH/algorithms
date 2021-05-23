@@ -77,15 +77,15 @@ BOOST_AUTO_TEST_CASE( test_karatusba_multiplication )
     //
     // specific edge cases
     //
-    BOOST_CHECK( karatsuba( new_int_list_sp(0    ), new_int_list_sp(0)     ) == new_int_list_sp(0)          );
-    BOOST_CHECK( karatsuba( new_int_list_sp(1    ), new_int_list_sp(1)     ) == new_int_list_sp(1)          );
-    BOOST_CHECK( karatsuba( new_int_list_sp(9    ), new_int_list_sp(4)     ) == new_int_list_sp(36)         );
-    BOOST_CHECK( karatsuba( new_int_list_sp(13   ), new_int_list_sp(3)     ) == new_int_list_sp(39)         );
-    BOOST_CHECK( karatsuba( new_int_list_sp(12   ), new_int_list_sp(12)    ) == new_int_list_sp(144)        );
-    BOOST_CHECK( karatsuba( new_int_list_sp(456  ), new_int_list_sp(18)    ) == new_int_list_sp(8208)       );
-    BOOST_CHECK( karatsuba( new_int_list_sp(18   ), new_int_list_sp(456)   ) == new_int_list_sp(8208)       );
-    BOOST_CHECK( karatsuba( new_int_list_sp(1234 ), new_int_list_sp(5678)  ) == new_int_list_sp(7006652)    );
-    BOOST_CHECK( karatsuba( new_int_list_sp(5678 ), new_int_list_sp(1234)  ) == new_int_list_sp(7006652)    );
+    BOOST_CHECK( karatsuba( new_int_list_sp(0    ), new_int_list_sp(0)     ) == new_int_list_sp(0)       );
+    BOOST_CHECK( karatsuba( new_int_list_sp(1    ), new_int_list_sp(1)     ) == new_int_list_sp(1)       );
+    BOOST_CHECK( karatsuba( new_int_list_sp(9    ), new_int_list_sp(4)     ) == new_int_list_sp(36)      );
+    BOOST_CHECK( karatsuba( new_int_list_sp(13   ), new_int_list_sp(3)     ) == new_int_list_sp(39)      );
+    BOOST_CHECK( karatsuba( new_int_list_sp(12   ), new_int_list_sp(12)    ) == new_int_list_sp(144)     );
+    BOOST_CHECK( karatsuba( new_int_list_sp(456  ), new_int_list_sp(18)    ) == new_int_list_sp(8208)    );
+    BOOST_CHECK( karatsuba( new_int_list_sp(18   ), new_int_list_sp(456)   ) == new_int_list_sp(8208)    );
+    BOOST_CHECK( karatsuba( new_int_list_sp(1234 ), new_int_list_sp(5678)  ) == new_int_list_sp(7006652) );
+    BOOST_CHECK( karatsuba( new_int_list_sp(5678 ), new_int_list_sp(1234)  ) == new_int_list_sp(7006652) );
 
     // beware of max uint
     BOOST_CHECK( karatsuba( new_int_list_sp(73134), new_int_list_sp(81168) ) == new_int_list_sp(vui({5,9,3,6,1,4,0,5,1,2})) );

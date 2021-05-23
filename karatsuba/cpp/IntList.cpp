@@ -15,12 +15,12 @@
 // use this define to run unit tests without externally-defined test runner
 #if defined(BUILD_INTLIST_UNIT_TEST_RUNNER)
 #define BOOST_TEST_MODULE IntList Test
-#define BUILD_UNIT_TEST
+#define BUILD_UNIT_TESTS
 #include <boost/test/included/unit_test.hpp>
 
 // use these defines ONLY when linking to an externally-defined test runner
 #elif defined(BUILD_INTLIST_UNIT_TESTS) || defined(BUILD_ALL_UNIT_TESTS) 
-#define BUILD_UNIT_TEST
+#define BUILD_UNIT_TESTS
 #include <boost/test/unit_test.hpp>
 #endif
 
@@ -94,13 +94,13 @@ IntList::IntList( unsigned int n )
             n/=10;
         }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
     // We expect no leading zeros from this process
     BOOST_ASSERT( this->size() <= 1 || this->msd()!=0 );
 #endif
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_initialization )
 {   //
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE( test_initialization )
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // delete the most significant digit in this integer list
@@ -192,7 +192,7 @@ void IntList::remove_leading_zeros()
         delete_msd();
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
 {   //
@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE( test_no_leading_zeros )
     BOOST_CHECK( *new_int_list_sp( vui({0}          ) ) == *new_int_list_sp( vui({0}        ) )); 
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // indexing operator
@@ -219,7 +219,7 @@ WriteCheck IntList::operator[](unsigned int i)
     // 
     static unsigned int zero = 0;
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
     // nobody should be able to change this, but it's a crazy world
     BOOST_ASSERT( zero == 0 ); 
 #endif
@@ -227,7 +227,7 @@ WriteCheck IntList::operator[](unsigned int i)
     return WriteCheck(i<il.size() ? (il[i]) : zero, i<il.size());
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_out_of_index_behavior )
 {   //
@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
     (*il)[8] = 1;
     (*il)[3] = 2;
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
     // verify new values were written to the expected offsets, and that the
     // leading zero is intact
     BOOST_CHECK( *il == *new_int_list_sp(vui({0,1,0,0,0,0,2,0,0,0}), false) );
@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
 
     il->remove_leading_zeros();
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
     // verify leading zero was chopped off
     BOOST_CHECK( *il == *new_int_list_sp(vui({1,0,0,0,0,2,0,0,0}), false) );
 #endif
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE( test_trim_leading_zero_functionality )
     
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // equality operator
@@ -371,7 +371,7 @@ bool IntList::operator>=(const IntList& that)
     auto a = new_int_list_sp(*this);
     auto b = new_int_list_sp(that);
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
     // assert that we have no leading zeros; since our constructor is expected to not
     // allow this to happen, it would be a surprise here
   
@@ -385,7 +385,7 @@ bool IntList::operator>=(const IntList& that)
     return greater_than_or_equal_to(a,b); 
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
 {   //
@@ -443,7 +443,7 @@ BOOST_AUTO_TEST_CASE( test_greater_than_or_equal_to )
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // Return the size of the integer list
@@ -490,7 +490,7 @@ std::string IntList::str()
     return str.str(); 
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_integer_list_string_representation ) {
 
@@ -521,7 +521,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_string_representation ) {
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // A unsigned int representation of the contents of integer list (if it fits)
@@ -540,7 +540,7 @@ unsigned int IntList::uint()
     return sum;
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_integer_list_uint_representation ) {
 
@@ -557,7 +557,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_uint_representation ) {
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // int_list shared pointer factory functions
@@ -587,7 +587,7 @@ int_list_sp new_int_list_sp(unsigned int n)
     return int_list_sp( new IntList(n) );
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_integer_list_factory_functions )
 {   //
@@ -637,7 +637,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_factory_functions )
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // operator for comparing two integer lists referenced by smart pointers
@@ -648,7 +648,7 @@ bool operator==(int_list_sp a, int_list_sp b)
     return *a == *b;
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_integer_list_equality )
 {   //
@@ -659,7 +659,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_equality )
     BOOST_CHECK( ! ( new_int_list_sp(1234567) == new_int_list_sp(7654321) ) );
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // operator for adding two integer lists referenced by smart pointers, resulting
@@ -693,7 +693,7 @@ int_list_sp operator+(int_list_sp a, int_list_sp b)
     return sum;
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_integer_list_addition )
 {   // 
@@ -737,7 +737,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_addition )
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
 // Return the difference (in integer list form) of two non-negative
@@ -789,7 +789,7 @@ int_list_sp operator-(int_list_sp a, int_list_sp b)
     return new_int_list_sp(diff);
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_integer_list_subtraction )
 {   //
@@ -848,4 +848,4 @@ BOOST_AUTO_TEST_CASE( test_integer_list_subtraction )
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS

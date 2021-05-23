@@ -13,12 +13,12 @@
 // use this define to run unit tests without externally-defined test runner
 #if defined(BUILD_KARATSUBA_UNIT_TEST_RUNNER)
 #define BOOST_TEST_MODULE Karatsuba Test
-#define BUILD_UNIT_TEST
+#define BUILD_UNIT_TESTS
 #include <boost/test/included/unit_test.hpp>
 
 // use these defines ONLY when linking to an externally-defined test runner 
 #elif defined(BUILD_KARATSUBA_UNIT_TESTS) || defined(BUILD_ALL_UNIT_TESTS)
-#define BUILD_UNIT_TEST
+#define BUILD_UNIT_TESTS
 #include <boost/test/unit_test.hpp>
 #endif
 
@@ -66,7 +66,7 @@ int_list_sp karatsuba(int_list_sp, int_list_sp y) {
     throw std::runtime_error("not implemented");
 }
 
-#ifdef BUILD_UNIT_TEST
+#ifdef BUILD_UNIT_TESTS
 
 BOOST_AUTO_TEST_CASE( test_karatusba_multiplication )
 {   //
@@ -109,4 +109,4 @@ BOOST_AUTO_TEST_CASE( test_karatusba_multiplication )
     }
 }
 
-#endif // BUILD_UNIT_TEST
+#endif // BUILD_UNIT_TESTS

@@ -10,7 +10,7 @@
 
 #include "IntList.h"
 
-int_list_sp karatsuba(int_list_sp, int_list_sp y);
+int_list_sp karatsuba(int_list_sp x, int_list_sp y);
 
 #endif // __karatsuba_h 
 

@@ -542,8 +542,8 @@ unsigned int IntList::uint()
 
 #ifdef BUILD_UNIT_TESTS
 
-BOOST_AUTO_TEST_CASE( test_integer_list_uint_representation ) {
-
+BOOST_AUTO_TEST_CASE( test_integer_list_uint_representation ) 
+{
     const unsigned int num_random_tests = 1000;
     for (int i=0; i < num_random_tests; i++) {
     
@@ -555,6 +555,30 @@ BOOST_AUTO_TEST_CASE( test_integer_list_uint_representation ) {
         // make sure the uint() val and the initialization value are identical
         BOOST_CHECK( il->uint() == rval );
     }
+}
+
+#endif // BUILD_UNIT_TESTS
+
+// *******************************************************************************
+// Append a digit to the integer list
+// *******************************************************************************
+//
+void IntList::append(unsigned int digit)
+{
+    if (il.back() != 0 || il.size()>1)
+        il.insert(il.begin(), digit);
+}
+
+#ifdef BUILD_UNIT_TESTS
+
+BOOST_AUTO_TEST_CASE( test_integer_list_append_digit )
+{   //
+    // make sure append behaves like we think it should
+    //
+    auto ilsp = new_int_list_sp(123);
+    BOOST_CHECK( ilsp->uint() == 123 );
+    ilsp->append(4);
+    BOOST_CHECK( ilsp->uint() == 1234 );
 }
 
 #endif // BUILD_UNIT_TESTS
@@ -640,7 +664,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_factory_functions )
 #endif // BUILD_UNIT_TESTS
 
 // *******************************************************************************
-// operator for comparing two integer lists referenced by smart pointers
+// operator for comparing equality of two integer lists ref'd by smart pointers
 // *******************************************************************************
 //
 bool operator==(int_list_sp a, int_list_sp b)
@@ -654,9 +678,57 @@ BOOST_AUTO_TEST_CASE( test_integer_list_equality )
 {   //
     // make sure integer list equality is working as expected
     //
+    using vui = std::vector<unsigned int>;
+
     BOOST_CHECK(     new_int_list_sp(0      ) == new_int_list_sp(0      )   );
     BOOST_CHECK(     new_int_list_sp(1234567) == new_int_list_sp(1234567)   );
     BOOST_CHECK( ! ( new_int_list_sp(1234567) == new_int_list_sp(7654321) ) );
+
+    BOOST_CHECK( new_int_list_sp(vui({0,0,0})) == new_int_list_sp(0) );
+}
+
+#endif // BUILD_UNIT_TESTS
+
+// *******************************************************************************
+// operator for comparing unequality of two integer lists ref'd by smart pointers
+// *******************************************************************************
+//
+bool operator!=(int_list_sp a, int_list_sp b)
+{
+    return *a != *b;
+}
+
+#ifdef BUILD_UNIT_TESTS
+
+BOOST_AUTO_TEST_CASE( test_integer_list_inequality )
+{   //
+    // make sure integer list equality is working as expected
+    //
+    BOOST_CHECK( ! ( new_int_list_sp(0      ) != new_int_list_sp(0      ) ) );
+    BOOST_CHECK( ! ( new_int_list_sp(1234567) != new_int_list_sp(1234567) ) );
+    BOOST_CHECK(     new_int_list_sp(1234567) != new_int_list_sp(7654321)   );
+}
+
+#endif // BUILD_UNIT_TESTS
+
+// *******************************************************************************
+// operator for comparing unequality of two integer lists ref'd by smart pointers
+// *******************************************************************************
+//
+bool operator>=(int_list_sp a, int_list_sp b)
+{
+    return *a >= *b;
+}
+
+#ifdef BUILD_UNIT_TESTS
+
+BOOST_AUTO_TEST_CASE( test_integer_list_greater_than_or_equality )
+{   //
+    // make sure integer list equality is working as expected
+    //
+    BOOST_CHECK(     new_int_list_sp(0      ) >= new_int_list_sp(0      )   );
+    BOOST_CHECK(     new_int_list_sp(1      ) >= new_int_list_sp(0      )   );
+    BOOST_CHECK( ! ( new_int_list_sp(1234567) >= new_int_list_sp(7654321) ) );
 }
 
 #endif // BUILD_UNIT_TESTS

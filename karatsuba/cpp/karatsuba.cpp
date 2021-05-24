@@ -26,15 +26,6 @@
 #include <climits>
 #endif
 
-// ************************************************************************ 
-// *** UNDER CONSTRUCTION *** UNDER CONSTRUCTION *** UNDER CONSTRUCTION ***
-// ************************************************************************ 
-
-// using namespace std;
-
-// TODO: we're going to want to make sure that we trap all possible failures and convert them to 
-// int return codes, or at least explore this possibility and its implications?
-
 using vui = std::vector<unsigned int>;
 
 #ifdef BUILD_UNIT_TESTS
@@ -167,7 +158,7 @@ BOOST_AUTO_TEST_CASE( test_karatusba_multiplication )
     //
     // specific simple cases
     //
-//    BOOST_CHECK( karatsuba( new_int_list_sp(0    ), new_int_list_sp(0)     ) == new_int_list_sp(0)       );
+    BOOST_CHECK( karatsuba( new_int_list_sp(0    ), new_int_list_sp(0)     ) == new_int_list_sp(0)       );
     BOOST_CHECK( karatsuba( new_int_list_sp(1    ), new_int_list_sp(1)     ) == new_int_list_sp(1)       );
     BOOST_CHECK( karatsuba( new_int_list_sp(9    ), new_int_list_sp(4)     ) == new_int_list_sp(36)      );
     BOOST_CHECK( karatsuba( new_int_list_sp(13   ), new_int_list_sp(3)     ) == new_int_list_sp(39)      );

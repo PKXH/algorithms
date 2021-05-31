@@ -11,11 +11,11 @@ import random
 
 # ********************************************************************** 
 def listify(x):
-'''
-Convert an arbitrary-lengthed integer argument into a list of value 0-9 
-integer digits, or simply return the input untouched if it is already a 
-list.
-'''
+    '''
+    Convert an arbitrary-lengthed integer argument into a list of value 0-9 
+    integer digits, or simply return the input untouched if it is already a 
+    list.
+    '''
     assert type(x) is int or (type(x) is list)
 
     if type(x) is int:

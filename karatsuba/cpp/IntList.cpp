@@ -820,9 +820,9 @@ int_list_sp operator-(int_list_sp a, int_list_sp b)
 {   //
     // make sure a>=b
     //
-    if (a->uint() < b->uint()) {
+    if (!(a >= b)) {
         std::stringstream error_msg_ss;
-        error_msg_ss << "a (" << a->uint() << ") must be >= (" << b->uint() << ")";
+        error_msg_ss << "a (" << a->str() << ") must be >= (" << b->str() << ")";
         throw std::invalid_argument(error_msg_ss.str());
     }
 
@@ -875,7 +875,7 @@ BOOST_AUTO_TEST_CASE( test_integer_list_subtraction )
         auto a = new_int_list_sp(998);
         auto b = new_int_list_sp(999);
         std::stringstream expected_error_msg_ss;
-        expected_error_msg_ss << "a (" << a->uint() << ") must be >= (" << b->uint() << ")";
+        expected_error_msg_ss << "a (" << a->str() << ") must be >= (" << b->str() << ")";
         BOOST_CHECK_EXCEPTION( a - b, 
                                std::invalid_argument,
                                [&](const std::invalid_argument& ex){ 

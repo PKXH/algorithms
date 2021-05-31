@@ -7,6 +7,10 @@
 // arbitrarily-lengthed integers as a list of single digits 
 // e.g., 3238675309 = {3,2,3,8,6,7,5,3,0,9}
 //
+// NOTE: when updating code, compile with:
+// clang++ -std=c++17 -DBUILD_INTLIST_UNIT_TEST_RUNNER IntList.cpp
+// and run a.out to test changes for breaks
+//
 #include <iostream>
 #include <sstream>
 #include <string>

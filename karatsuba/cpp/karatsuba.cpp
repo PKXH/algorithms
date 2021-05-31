@@ -5,6 +5,10 @@
 //
 // Implementation of Karatsuba multiplication
 //
+// NOTE: when updating code, compile with:
+// clang++ -std=c++17 -DBUILD_KARATSUBA_UNIT_TEST_RUNNER IntList.cpp karatsuba.cpp
+// and run a.out to test changes for breaks
+//
 #include <iostream>
 #include <vector>
 

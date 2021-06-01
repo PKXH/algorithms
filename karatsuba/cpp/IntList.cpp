@@ -484,12 +484,9 @@ std::string IntList::str()
 {
     std::stringstream str;
 
-    str << "{";
-
     for (auto i=il.rbegin(); i!=il.rend(); ++i)
-        str << *i << ",";
-
-    str << "}\n";
+        str << *i ;
+    str << "\n";
 
     return str.str(); 
 }

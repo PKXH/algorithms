@@ -30,6 +30,13 @@ private:
     // list implementation 
     int_list_t il;
 
+// todo: so I think we need to add a list initialization to this? How to make it
+// disappear when it goes out of scope? I guess we can move it by initializing 
+// move semantics.
+//
+// And then I think we can get rid of the factory functions and just use something
+// that expects that use it as an object that goes out of scope?
+
     // constructors
     IntList( const IntList& il, bool trim_leading_zeros = true ); 
     IntList( const std::vector<unsigned int>& v, bool trim_leading_zeros = true );
@@ -37,10 +44,18 @@ private:
     IntList( unsigned int n ); 
 
     // utility functions
-    bool greater_than_or_equal_to(int_list_sp& a, int_list_sp& b);
+    bool greater_than_or_equal_to(int_list_sp& a, int_list_sp& b); // todo: and we should be able to get rid of this...?
     void delete_msd();
 
 public:
+    // copy semantics
+    IntList& IntList(const IntList& il); // todo: implementation 
+
+    // move semantics
+    IntList&& IntList(IntList&& il_ptr); // todo: implementation
+
+// todo: probably also like the add some iostream support.
+
     // index operator; returns value-wrapper that blocks writebacks for
     // out-of-range selections
     WriteCheck operator[](unsigned int i);

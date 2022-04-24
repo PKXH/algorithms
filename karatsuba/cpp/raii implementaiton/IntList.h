@@ -28,11 +28,11 @@ class IntList
 public:
     // list implementation type
     using value_type = unsigned int;
-    using int_list_t = std::vector<value_type>;
 
 private:
     // list implementation 
-    std::vector<unsigned int> il;
+    using int_list_t = std::vector<value_type>;
+    int_list_t il;
 
     // msd utility functions
     static inline const value_type& msd (const int_list_t& il ) { return il.front(); }

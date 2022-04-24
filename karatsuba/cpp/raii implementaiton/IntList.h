@@ -66,7 +66,7 @@ public:
     IntList& operator=(const IntList& il) = delete; //no copy operator!
     IntList& operator=(IntList&& il); // move operator
 
-    // instead of copy constructor
+    // in lieu of copy constructor
     IntList clone() const; // "clone" from an existing integer list
 
     // indexing operations
@@ -93,8 +93,6 @@ public:
     friend void run_trim_leading_zeros_tests(); 
 #endif
 };
-
-// bool operator>=(const IntList& a, const IntList& b);
 
 #if defined(BUILD_UNIT_TESTS)
 void set_previous_index_0_data_address(IntList& il);

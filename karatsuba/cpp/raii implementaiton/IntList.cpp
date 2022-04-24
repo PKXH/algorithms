@@ -46,10 +46,6 @@ IntList::IntList( std::initializer_list<value_type> ilist )
     // unpack the initializer list into the IntList; do validity-checking on each 
     // digit before pushing it in.
     //
-//    auto is_gt0 = [](unsigned int i) { return i>0; };
-//    auto list_begin = trim_leading_zeros 
-//                    ? std::find_if(ilist.begin(), ilist.end(), is_gt0) 
-//                    : ilist.begin(); 
     if (ilist.size() == 0)
         throw std::invalid_argument( std::string("empty list is not allowed") );
     else
@@ -264,44 +260,6 @@ BOOST_AUTO_TEST_CASE(Intlist_move_assignment_operator_tests)
 
 
 
-//// *******************************************************************************
-//// IntList equality (==) operator
-//// *******************************************************************************
-////
-//// Compares the value of "this" IntList with "that" IntList and returns true if
-//// they are the same, and false otherwise.
-////
-////
-//// *******************************************************************************
-////
-//bool IntList::operator==(const IntList& that) const 
-//{
-//    return this->il == that.il;
-//}
-////
-//// -------------------------------------------------------------------------------
-////                             FUNCTIONALITY TESTS
-//// -------------------------------------------------------------------------------
-////
-//#ifdef BUILD_UNIT_TESTS
-//BOOST_AUTO_TEST_CASE(intlist_equality_operator_tests)
-//{   //
-//    // Verify minimal IntList equality check operator expectations
-//    //
-//    IntList il1 = {1,2,3};
-//    IntList il2 = {1,2,3};
-//    IntList il3 = {3,2,1};
-//
-//    BOOST_ASSERT(   il1 == il1  );
-//    BOOST_ASSERT(   il1 == il2  );
-//    BOOST_ASSERT( !(il1 == il3) );
-//}
-//#endif // BUILD_UNIT_TESTS
-//// ------------------------------------------------------------------------------- 
-
-
-
-
 // TODO: but we're going to want to auto-zero the high end at some point, aren't we?
 
 // *******************************************************************************
@@ -419,7 +377,6 @@ BOOST_AUTO_TEST_CASE(IntList_clone_function_tests)
 //
 IntList::value_type* IntList::begin()
 {
-//    return il.begin();
     return &il[0];
 }
 //
@@ -433,7 +390,6 @@ IntList::value_type* IntList::begin()
 //
 IntList::value_type* IntList::end()
 {
-//    return il.end();
     return this->begin() + this->size(); 
 }
 //

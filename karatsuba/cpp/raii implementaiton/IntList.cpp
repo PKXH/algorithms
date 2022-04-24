@@ -41,7 +41,7 @@
 //                                IMPLEMENTATION
 // ------------------------------------------------------------------------------- 
 //
-IntList::IntList( std::initializer_list<unsigned int> ilist, bool trim_leading_zeros ) 
+IntList::IntList( std::initializer_list<value_type> ilist ) 
 {   //
     // unpack the initializer list into the IntList; do validity-checking on each 
     // digit before pushing it in.
@@ -50,11 +50,18 @@ IntList::IntList( std::initializer_list<unsigned int> ilist, bool trim_leading_z
 //    auto list_begin = trim_leading_zeros 
 //                    ? std::find_if(ilist.begin(), ilist.end(), is_gt0) 
 //                    : ilist.begin(); 
-    for ( auto p = ilist.begin(); p != ilist.end(); ++p )
-        this->push_back(*p);
+    if (ilist.size() == 0)
+        throw std::invalid_argument( std::string("empty list is not allowed") );
+    else
+    {
+        for ( auto p = ilist.begin(); p != ilist.end(); ++p )
+            this->push_back(*p);
+        trim_leading_zeros( il );
+        if (il.size() == 0)
+            il.push_back(0);
+    }
 
-    if (trim_leading_zeros)
-        this->trim_leading_zeros( il );
+    BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
 }
 //
 // -------------------------------------------------------------------------------
@@ -94,6 +101,7 @@ BOOST_AUTO_TEST_CASE(intlist_initializer_list_initialization_tests)
     
     BOOST_CHECK_THROW( IntList il ( {0,0,22 } );, std::invalid_argument ); 
     BOOST_CHECK_THROW( IntList il ( {0,0,'a'} );, std::invalid_argument ); 
+    BOOST_CHECK_THROW( IntList il ( {}        );, std::invalid_argument );
 }
 #endif // BUILD_UNIT_TESTS
 // ------------------------------------------------------------------------------- 
@@ -120,11 +128,7 @@ IntList::IntList( unsigned int n )
             n/=10;
         }
 
-#ifdef BUILD_UNIT_TESTS
-    // We expect no leading zeros from this process
-    // TODO: re-enable this when we have this methodlogy in place...
-//    BOOST_ASSERT( this->size() <= 1 || this->msd()!=0 );
-#endif
+    BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
 }
 //
 // -------------------------------------------------------------------------------
@@ -186,6 +190,7 @@ BOOST_AUTO_TEST_CASE(intlist_unsigned_int_initialization_tests)
 IntList::IntList( IntList&& il )
     : il{std::move(il.il)}
 {
+    BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
 }
 //
 // -------------------------------------------------------------------------------
@@ -230,6 +235,7 @@ BOOST_AUTO_TEST_CASE(IntList_move_constructor_tests)
 IntList& IntList::operator=(IntList&& il)
 {
     this->il = std::move(il.il); // invoke std container move semantics
+    BOOST_ASSERT( IntList::is_zero_trimmed( *this ) );
     return *this;
 }
 //
@@ -258,77 +264,40 @@ BOOST_AUTO_TEST_CASE(Intlist_move_assignment_operator_tests)
 
 
 
-// *******************************************************************************
-// IntList equality (==) operator
-// *******************************************************************************
+//// *******************************************************************************
+//// IntList equality (==) operator
+//// *******************************************************************************
+////
+//// Compares the value of "this" IntList with "that" IntList and returns true if
+//// they are the same, and false otherwise.
+////
+////
+//// *******************************************************************************
+////
+//bool IntList::operator==(const IntList& that) const 
+//{
+//    return this->il == that.il;
+//}
+////
+//// -------------------------------------------------------------------------------
+////                             FUNCTIONALITY TESTS
+//// -------------------------------------------------------------------------------
+////
+//#ifdef BUILD_UNIT_TESTS
+//BOOST_AUTO_TEST_CASE(intlist_equality_operator_tests)
+//{   //
+//    // Verify minimal IntList equality check operator expectations
+//    //
+//    IntList il1 = {1,2,3};
+//    IntList il2 = {1,2,3};
+//    IntList il3 = {3,2,1};
 //
-// Compares the value of "this" IntList with "that" IntList and returns true if
-// they are the same, and false otherwise.
-//
-//
-// *******************************************************************************
-//
-bool IntList::operator==(const IntList& that) 
-{
-    return this->il == that.il;
-}
-//
-// -------------------------------------------------------------------------------
-//                             FUNCTIONALITY TESTS
-// -------------------------------------------------------------------------------
-//
-#ifdef BUILD_UNIT_TESTS
-BOOST_AUTO_TEST_CASE(intlist_equality_operator_tests)
-{   //
-    // Verify minimal IntList equality check operator expectations
-    //
-    IntList il1 = {1,2,3};
-    IntList il2 = {1,2,3};
-    IntList il3 = {3,2,1};
-
-    BOOST_ASSERT(   il1 == il1  );
-    BOOST_ASSERT(   il1 == il2  );
-    BOOST_ASSERT( !(il1 == il3) );
-}
-#endif // BUILD_UNIT_TESTS
-// ------------------------------------------------------------------------------- 
-
-
-
-// *******************************************************************************
-// IntList inequality (!==) operator
-// *******************************************************************************
-//
-// Compares the value of "this" IntList with "that" IntList and returns false if
-// they are the same, and true otherwise.
-//
-//
-// *******************************************************************************
-//
-bool IntList::operator!=(const IntList& a)
-{
-    return !(*this==a);
-}
-//
-// -------------------------------------------------------------------------------
-//                             FUNCTIONALITY TESTS
-// -------------------------------------------------------------------------------
-//
-#ifdef BUILD_UNIT_TESTS
-BOOST_AUTO_TEST_CASE(intlist_inequality_operator_tests)
-{   //
-    // Verify minimal IntList equality check operator expectations
-    //
-    IntList il1 = {1,2,3};
-    IntList il2 = {1,2,3};
-    IntList il3 = {3,2,1};
-
-    BOOST_ASSERT( !(il1 != il1) );
-    BOOST_ASSERT( !(il1 != il2) );
-    BOOST_ASSERT(   il1 != il3  );
-}
-#endif // BUILD_UNIT_TESTS 
-// ------------------------------------------------------------------------------- 
+//    BOOST_ASSERT(   il1 == il1  );
+//    BOOST_ASSERT(   il1 == il2  );
+//    BOOST_ASSERT( !(il1 == il3) );
+//}
+//#endif // BUILD_UNIT_TESTS
+//// ------------------------------------------------------------------------------- 
 
 
 
@@ -343,7 +312,7 @@ BOOST_AUTO_TEST_CASE(intlist_inequality_operator_tests)
 //
 // *******************************************************************************
 //
-unsigned int& IntList::operator[]( int i )
+IntList::value_type& IntList::operator[]( int i )
 {   //
     // offer index access to our number, but enforce valid range
     //
@@ -352,6 +321,12 @@ unsigned int& IntList::operator[]( int i )
         throw std::out_of_range( msg );
     }
     else return il[i];
+}
+//
+const IntList::value_type& IntList::operator[]( int i ) const
+{
+    // TODO: dry out the boundary checking at least; would be better to have shared access code?
+    return il[i]; 
 }
 //
 // -------------------------------------------------------------------------------
@@ -381,11 +356,6 @@ BOOST_AUTO_TEST_CASE(intlist_indexing_operator_tests)
 #endif // BUILD_UNIT_TESTS
 // -------------------------------------------------------------------------------
 
-// TODO: are we going to need this?
-//bool operator>=(const IntList& a, const IntList& b)
-//{
-//}
-
 
 
 // =============================================================================== 
@@ -400,11 +370,12 @@ BOOST_AUTO_TEST_CASE(intlist_indexing_operator_tests)
 //
 // *******************************************************************************
 //
-IntList IntList::clone( )
+IntList IntList::clone( ) const 
 {
-    // TODO: isn't there a standard library copy function that we can use here?
-    IntList il({});
-    for ( auto p = this->begin(); p != this->end(); ++p )
+    IntList il({0});
+    il.il.clear(); 
+
+    for ( auto p = this->cbegin(); p != this->cend(); ++p )
         il.push_back(*p);
     return il;
 }
@@ -446,7 +417,7 @@ BOOST_AUTO_TEST_CASE(IntList_clone_function_tests)
 //
 // *******************************************************************************
 //
-unsigned int* IntList::begin()
+IntList::value_type* IntList::begin()
 {
 //    return il.begin();
     return &il[0];
@@ -460,7 +431,7 @@ unsigned int* IntList::begin()
 //
 // *******************************************************************************
 //
-unsigned int* IntList::end()
+IntList::value_type* IntList::end()
 {
 //    return il.end();
     return this->begin() + this->size(); 
@@ -486,6 +457,18 @@ BOOST_AUTO_TEST_CASE(intlist_begin_end_function_tests)
 // -------------------------------------------------------------------------------
 
 
+const IntList::value_type* IntList::cbegin() const
+{
+//    return il.cbegin();
+    return &il[0]; 
+}
+
+const IntList::value_type* IntList::cend() const
+{
+//    return il.cend();
+    return this->cbegin() + this->size();
+}
+
 
 // *******************************************************************************
 // IntList::push_back
@@ -495,7 +478,7 @@ BOOST_AUTO_TEST_CASE(intlist_begin_end_function_tests)
 //
 // *******************************************************************************
 //
-void IntList::push_back(unsigned int n)
+void IntList::push_back(value_type n)
 {
     // TODO: inline? How can we make sure that these in-scope constants don't have to be loaded every damn
     // time? Basically, what is the best way to do this kind of function? Well, since we're calling stl push_back
@@ -551,10 +534,10 @@ BOOST_AUTO_TEST_CASE(intlist_push_back_function_tests)
 //
 // *******************************************************************************
 //
-void IntList::trim_leading_zeros( int_list_t& il )
+void IntList::trim_leading_zeros( IntList::int_list_t& il )
 {
-    while ( il.size() > 1 && msd(il) == 0 )
-        delete_msd(il);
+    while ( il.size() > 1 && IntList::msd(il) == 0 )
+        IntList::delete_msd(il);
 }
 //
 // -------------------------------------------------------------------------------
@@ -627,6 +610,104 @@ void run_trim_leading_zeros_tests()
 BOOST_AUTO_TEST_CASE(intlist_trim_leading_zeros_function_tests)
 {
     run_trim_leading_zeros_tests();
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// IntList operator <=>  
+// *******************************************************************************
+//
+// c++20 autogeneration of all comparison operator options by way of <=>
+//
+// *******************************************************************************
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(intlist_comparison_operator_tests)
+{
+    {   //
+        // make sure that equal values are found to be equal
+        //
+        IntList il1 {3};
+        IntList il2 {3};
+        BOOST_ASSERT(!( il1 >  il2 ));
+        BOOST_ASSERT(!( il1 <  il2 ));
+        BOOST_ASSERT(   il1 >= il2  );
+        BOOST_ASSERT(   il1 <= il2  );
+        BOOST_ASSERT(   il1 == il2  );
+        BOOST_ASSERT(!( il1 != il2 ));
+    }
+
+    {   //
+        // make sure that unequal values are found to be unequal
+        //
+        IntList il1 {4};
+        IntList il2 {5};
+        BOOST_ASSERT(!( il1 >  il2 ));
+        BOOST_ASSERT(   il1 <  il2  );
+        BOOST_ASSERT(!( il1 >= il2 ));
+        BOOST_ASSERT(   il1 <= il2  );
+        BOOST_ASSERT(!( il1 == il2 ));
+        BOOST_ASSERT(   il1 != il2  );
+    }
+
+    {   //
+        // make sure that (longer) unequal values are found to be unequal
+        //
+        IntList il1 {1,2,3,4};
+        IntList il2 {1,2,3,5};
+        BOOST_ASSERT(!( il1 >  il2 ));
+        BOOST_ASSERT(   il1 <  il2  );
+        BOOST_ASSERT(!( il1 >= il2 ));
+        BOOST_ASSERT(   il1 <= il2  );
+        BOOST_ASSERT(!( il1 == il2 ));
+        BOOST_ASSERT(   il1 != il2  );
+    }
+
+
+    {   //
+        // make sure that leading zeros don't mess things up
+        //
+        IntList il1 {0,0,0,1,2,3};
+        IntList il2 {1,2,3};
+        BOOST_ASSERT(!( il1 >  il2 ));
+        BOOST_ASSERT(!( il1 <  il2 ));
+        BOOST_ASSERT(   il1 >= il2  );
+        BOOST_ASSERT(   il1 <= il2  );
+        BOOST_ASSERT(   il1 == il2  );
+        BOOST_ASSERT(!( il1 != il2 ));
+    }
+
+    {   //
+        // check comparison functionality against much-larger-than unsigned int values
+        //
+        IntList il1a {9,0,6,5,4,7,3,1,8,5,4,3,8,9,0,5,3,2,4,5,7,8,9,4,1,0,9,4,0,3,9,6,2,3,1,4,9,0,9,8,3,4,6,2,3,4,6,5,2,8,9,0,5,4,3,2,5,6,7,8}; // identical
+        IntList il1b {9,0,6,5,4,7,3,1,8,5,4,3,8,9,0,5,3,2,4,5,7,8,9,4,1,0,9,4,0,3,9,6,2,3,1,4,9,0,9,8,3,4,6,2,3,4,6,5,2,8,9,0,5,4,3,2,5,6,7,8}; //
+        IntList il2  {4,5,1,8,9,0,4,5,6,7,3,4,5,0,2,1,6,9,2,8,3,2,4,9,8,0,6,4,3,5,8,3,2,5,6,8,6}; // somewhat smaller!
+
+        BOOST_ASSERT(!( il1a >  il1b ));  // long & identical
+        BOOST_ASSERT(!( il1a <  il1b ));  //
+        BOOST_ASSERT(   il1a >= il1b  );  //
+        BOOST_ASSERT(   il1a <= il1b  );  //
+        BOOST_ASSERT(   il1a == il1b  );  //
+        BOOST_ASSERT(!( il1a != il1b ));  //
+
+        BOOST_ASSERT(!( il2 >  il1a ));   // long w/ unequal values & lengths 
+        BOOST_ASSERT(   il2 <  il1a  );   //
+        BOOST_ASSERT(!( il2 >= il1a ));   //
+        BOOST_ASSERT(   il2 <= il1a  );   //
+        BOOST_ASSERT(!( il2 == il1a ));   //
+        BOOST_ASSERT(   il2 != il1a  );   //
+
+        BOOST_ASSERT( il1a <=> il2  > 0 );  // take me to your leader, c++20! 
+        BOOST_ASSERT(  il2 <=> il1a < 0 );  // 
+    }
 }
 #endif // BUILD_UNIT_TESTS
 // -------------------------------------------------------------------------------

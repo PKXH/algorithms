@@ -72,6 +72,7 @@ public:
     // indexing operations
     value_type& operator[]( int i );
     const value_type& operator[]( int i) const;
+    void throw_on_invalid_index( int i, const int_list_t& il ) const;
 
     unsigned long size() const { return il.size(); }
 

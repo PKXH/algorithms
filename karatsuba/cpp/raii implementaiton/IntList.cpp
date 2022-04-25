@@ -35,8 +35,6 @@
 // construct this IntList using an initializer list (of unsigned ints). If 
 // trim_leading_zeros is specified, then do it!
 //
-// TODO: still have to implement trim_leading_zeros and add tests.
-//
 // -------------------------------------------------------------------------------
 //                                IMPLEMENTATION
 // ------------------------------------------------------------------------------- 
@@ -267,23 +265,31 @@ BOOST_AUTO_TEST_CASE(Intlist_move_assignment_operator_tests)
 // *******************************************************************************
 //
 // Returns reference to this object's value at the specified index. Range checked.
+// Range checking will throw exception for bad indexes.
 //
 // *******************************************************************************
 //
-IntList::value_type& IntList::operator[]( int i )
-{   //
-    // offer index access to our number, but enforce valid range
-    //
-    if (i>il.size()) {
+void IntList::throw_on_invalid_index( int i, const int_list_t& il) const
+{
+    if (i > il.size()) {
         std::string msg = "index must be >=0 and <= " + std::to_string( il.size() );
         throw std::out_of_range( msg );
     }
-    else return il[i];
+}
+//
+IntList::value_type& IntList::operator[]( int i )
+{   //
+    // given a valid index, offer indexed access to our number.
+    // 
+    throw_on_invalid_index( i, il );
+    return il[i];
 }
 //
 const IntList::value_type& IntList::operator[]( int i ) const
-{
-    // TODO: dry out the boundary checking at least; would be better to have shared access code?
+{   //
+    // given a valid index, offer indexed read access to our number. 
+    //
+    throw_on_invalid_index( i, il );
     return il[i]; 
 }
 //

@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <compare>
+#include <ranges>
 // PKXH TODO: do we really need <memory> included?
 
 class IntList;
@@ -28,6 +29,8 @@ class IntList
 public:
     // list implementation type
     using value_type = unsigned int;
+    static const value_type lower_bound = 0;
+    static const value_type upper_bound = 9;
 
 private:
     // list implementation 
@@ -38,13 +41,14 @@ private:
     static inline const value_type& msd (const int_list_t& il ) { return il.front(); }
     static inline void delete_msd (int_list_t& il ) { il.erase(il.begin()); }
 
+    static void throw_on_invalid_value_range( const value_type& v);
+    static void throw_on_any_invalid_value_range( const int_list_t& il);
+    static void throw_on_invalid_min_size( const int_list_t& il );
+
     void trim_leading_zeros( int_list_t& int_list ); 
 
 public:
     // constructors
-    // PKXH TODO: should I use a reference on this initializer list?
-    // will it mess up initialization? Does it have to be this?
-    //
     IntList( std::initializer_list<value_type> il ); // init by initializer list
     IntList( unsigned int ui );                      // init by unsigned int 
 
@@ -91,7 +95,12 @@ public:
 #if defined(BUILD_UNIT_TESTS)
     // for testing clone v. move behaviors
     friend bool has_same_index_0_data_address_as_previous(IntList& il);
+
+    // for testing initialization helpers and validators
     friend void run_trim_leading_zeros_tests(); 
+    friend void size_check_int_list_representation( std::initializer_list<IntList::value_type> il );
+    friend void value_check_int_list_value( const value_type& val );
+    friend void value_check_int_list( std::initializer_list<value_type> il );
 #endif
 };
 

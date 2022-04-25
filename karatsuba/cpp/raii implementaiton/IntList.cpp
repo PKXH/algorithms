@@ -24,6 +24,8 @@
 #include <assert.h>
 #include "IntList.h"
 
+
+
 // =============================================================================== 
 // class IntList constructors
 // =============================================================================== 
@@ -40,20 +42,14 @@
 // ------------------------------------------------------------------------------- 
 //
 IntList::IntList( std::initializer_list<value_type> ilist ) 
+    : il( ilist )
 {   //
-    // unpack the initializer list into the IntList; do validity-checking on each 
-    // digit before pushing it in.
+    // unpack the initializer list into the IntList; 
+    // do validity-checking on each digit.
     //
-    if (ilist.size() == 0)
-        throw std::invalid_argument( std::string("empty list is not allowed") );
-    else
-    {
-        for ( auto p = ilist.begin(); p != ilist.end(); ++p )
-            this->push_back(*p);
-        trim_leading_zeros( il );
-        if (il.size() == 0)
-            il.push_back(0);
-    }
+    throw_on_invalid_min_size( il );
+    throw_on_any_invalid_value_range( il );
+    trim_leading_zeros( il );
 
     BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
 }
@@ -187,7 +183,6 @@ IntList::IntList( IntList&& il )
     BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
 }
 //
-// -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
 // -------------------------------------------------------------------------------
 //
@@ -212,8 +207,6 @@ BOOST_AUTO_TEST_CASE(IntList_move_constructor_tests)
 // class IntList operators
 // =============================================================================== 
 
-// *******************************************************************************
-// IntList "move" assignment (=) operator
 // *******************************************************************************
 //
 // "move" operator for cheap rvalue assignments 
@@ -261,7 +254,7 @@ BOOST_AUTO_TEST_CASE(Intlist_move_assignment_operator_tests)
 // TODO: but we're going to want to auto-zero the high end at some point, aren't we?
 
 // *******************************************************************************
-// IntList index ([]) operator
+// IntList index ([]) operator (and friends)
 // *******************************************************************************
 //
 // Returns reference to this object's value at the specified index. Range checked.
@@ -374,6 +367,146 @@ BOOST_AUTO_TEST_CASE(IntList_clone_function_tests)
 
 
 // *******************************************************************************
+// IntList::throw_on_invalid_min_size
+// *******************************************************************************
+//
+// Given an integer list representation, throw an exception if it has an invalid
+// size; do nothing otherwise.
+//
+// *******************************************************************************
+//
+void IntList::throw_on_invalid_min_size( const int_list_t& il )
+{
+    if (il.size() == 0)
+        throw std::invalid_argument( std::string("empty list is not allowed") );
+}
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+void size_check_int_list_representation( std::initializer_list<IntList::value_type> il )
+{   //
+    // create an int_list_t representation and load it up with the supplied 
+    // initializer list. The feed it to the function we are testing to see if
+    // it does what we expect.
+    //
+    IntList::int_list_t ilt = il;
+    IntList::throw_on_invalid_min_size( ilt );
+}
+#endif
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(IntList_throw_on_invalid_min_size_tests)
+{   
+    // Make sure it doesn't blow up when everything is good. 
+    BOOST_CHECK_NO_THROW( size_check_int_list_representation( {1,2,3} ) );
+
+    // ...and make sure that it DOES blow up when things aren't so good.
+    BOOST_CHECK_THROW( size_check_int_list_representation( {} ), std::invalid_argument );
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// IntList::throw_on_invalid_value_range
+// *******************************************************************************
+//
+// Given an integer list element value, throw an exception if it has an invalid
+// value; do nothing otherwise.
+//
+// *******************************************************************************
+//
+void IntList::throw_on_invalid_value_range( const value_type& n )
+{
+    if ( !( n>=IntList::lower_bound && n<=IntList::upper_bound ) ) {
+        throw std::invalid_argument( std::string("'")
+                                   + std::to_string(n) 
+                                   + std::string( "' is not a valid list digit; must be (" ) 
+                                   + std::to_string(lower_bound) 
+                                   + std::string( " <= n <= " )
+                                   + std::to_string(upper_bound) 
+                                   + std::string( ")" )
+        );
+    }
+}
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+void value_check_int_list_value( const IntList::value_type& val )
+{   //
+    // feed the value to this private value-check function to see if it
+    // behaves as we expect
+    //
+    IntList::throw_on_invalid_value_range( val );
+}
+#endif
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(IntList_throw_on_invalid_value_range_tests)
+{   
+    // Make sure it doesn't blow up when everything is good. 
+    for ( int i=IntList::lower_bound; i <= IntList::upper_bound; i++ )
+        BOOST_CHECK_NO_THROW( value_check_int_list_value( i ) );
+
+    // ...and make sure that it DOES blow up when things aren't so good.
+    BOOST_CHECK_THROW( value_check_int_list_value( IntList::lower_bound-1 ), std::invalid_argument );
+    BOOST_CHECK_THROW( value_check_int_list_value( IntList::upper_bound+1 ), std::invalid_argument );
+    BOOST_CHECK_THROW( value_check_int_list_value(                8675309 ), std::invalid_argument );
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// IntList::throw_on_any_invalid_value_range
+// *******************************************************************************
+//
+// Given an integer list, throw an exception if any element it contains has an 
+// invalid value; do nothing otherwise.
+//
+// *******************************************************************************
+//
+void IntList::throw_on_any_invalid_value_range( const int_list_t& il)
+{
+    std::for_each( il.begin(), il.end(), throw_on_invalid_value_range );
+};
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+void value_check_int_list( std::initializer_list<IntList::value_type> il )
+{
+    IntList::int_list_t ilt = il; 
+    IntList::throw_on_any_invalid_value_range( il );
+}
+#endif
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(IntList_throw_on_any_invalid_value_range_tests)
+{   
+    // Make sure it doesn't blow up when everything is good. 
+    BOOST_CHECK_NO_THROW( value_check_int_list( {8,6,7,5,3,0,9} ) );
+
+    // ...and make sure that it DOES blow up when things aren't so good.
+    BOOST_CHECK_THROW( value_check_int_list( {8,6,7,5,3,0,9999} ), std::invalid_argument );
+    BOOST_CHECK_THROW( value_check_int_list( {1,11,0,1}         ), std::invalid_argument );
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
 // IntList::begin
 // *******************************************************************************
 //
@@ -442,23 +575,8 @@ const IntList::value_type* IntList::cend() const
 //
 void IntList::push_back(value_type n)
 {
-    // TODO: inline? How can we make sure that these in-scope constants don't have to be loaded every damn
-    // time? Basically, what is the best way to do this kind of function? Well, since we're calling stl push_back
-    // maybe not a place for inline? And the static constants would have to go.
-
-    static const unsigned int lower_bound = 0;
-    static const unsigned int upper_bound = 9;
-    if (!(n>=lower_bound && n<=upper_bound)) 
-        throw std::invalid_argument( std::string("'")
-                                   + std::to_string(n) 
-                                   + std::string( "' is not a valid list digit; must be (" ) 
-                                   + std::to_string(lower_bound) 
-                                   + std::string( " <= n <= " )
-                                   + std::to_string(upper_bound) 
-                                   + std::string( ")" )
-        );
-    else 
-        il.push_back(n);
+    IntList::throw_on_invalid_value_range( n );
+    il.push_back( n );
 }
 //
 // -------------------------------------------------------------------------------

@@ -34,9 +34,8 @@
 // IntList::IntList (initialize from initializer list)
 // *******************************************************************************
 //
-// construct this IntList using an initializer list (of unsigned ints). If 
-// trim_leading_zeros is specified, then do it!
-//
+// construct this IntList using an initializer list (of unsigned ints). 
+// 
 // -------------------------------------------------------------------------------
 //                                IMPLEMENTATION
 // ------------------------------------------------------------------------------- 
@@ -99,6 +98,73 @@ BOOST_AUTO_TEST_CASE(intlist_initializer_list_initialization_tests)
 
 
 // *******************************************************************************
+// IntList::IntList (initialize from vector) 
+// *******************************************************************************
+//
+// construct this IntList using an vector (of unsigned ints).
+//
+// -------------------------------------------------------------------------------
+//                                IMPLEMENTATION
+// ------------------------------------------------------------------------------- 
+//
+IntList::IntList( std::vector<value_type>& vec ) 
+    : il( vec )
+{   //
+    // unpack the initializer list into the IntList; 
+    // do validity-checking on each digit.
+    //
+    throw_on_invalid_min_size( il );
+    throw_on_any_invalid_value_range( il );
+    trim_leading_zeros( il );
+
+    BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
+}
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(intlist_vector_initialization_tests)
+{   //
+    // IntList construction/destruction
+    //
+    // With just the constructor we can only check that this thing comes and goes 
+    // without blowing up when given something reasonable, and DOES blow up when
+    // given something unreasonable.
+
+    // BOOST doesn't seem to like this initialization notation...
+    //   IntList ilx {22};
+    // Have to enclose initializer list in parens...
+    
+    // check initializer list-based initialization
+    BOOST_CHECK_NO_THROW( IntList il ( {    0} ); );  
+    BOOST_CHECK_NO_THROW( IntList il ( {    1} ); ); 
+    BOOST_CHECK_NO_THROW( IntList il ( {1,2,3} ); ); 
+    BOOST_CHECK_NO_THROW( IntList il ( {0,0,0} ); ); 
+    BOOST_CHECK_NO_THROW( IntList il ( {0,0,1} ); ); 
+    BOOST_CHECK_NO_THROW( IntList il ( {0,0,1} ); ); 
+
+    {   //
+        // check trim leading zeros
+        //
+        IntList il1 {0,0,1,2,3};
+        IntList il2 {1,2,3};
+
+        BOOST_ASSERT( il1.size() == il2.size() );
+        BOOST_ASSERT( il1 == il2 ); 
+    }
+    
+    BOOST_CHECK_THROW( IntList il ( {0,0,22 } );, std::invalid_argument ); 
+    BOOST_CHECK_THROW( IntList il ( {0,0,'a'} );, std::invalid_argument ); 
+    BOOST_CHECK_THROW( IntList il ( {}        );, std::invalid_argument );
+}
+#endif // BUILD_UNIT_TESTS
+// ------------------------------------------------------------------------------- 
+
+
+
+// *******************************************************************************
 // IntList::IntList (initialize from unsigned int value)
 // *******************************************************************************
 //
@@ -114,7 +180,7 @@ IntList::IntList( unsigned int n )
         il.insert(il.begin(),0);
     else
         while (n>0) {
-            il.insert(il.begin(),n%10);
+            il.insert(il.begin(), n%10);
             n/=10;
         }
 
@@ -787,6 +853,243 @@ BOOST_AUTO_TEST_CASE(intlist_comparison_operator_tests)
 
         BOOST_ASSERT( il1a <=> il2  > 0 );  // take me to your leader, c++20! 
         BOOST_ASSERT(  il2 <=> il1a < 0 );  // 
+    }
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// IntList addition operator (+) 
+// *******************************************************************************
+//
+// Add two arbitrarily-lengthed IntLists, resulting in an IntList result.
+//
+// *******************************************************************************
+//
+IntList operator+(const IntList& a, const IntList& b)
+{
+    std::vector<IntList::value_type> sum;
+
+    unsigned int digit_sum = 0;
+    unsigned int ones_sum  = 0;
+    unsigned int carry     = 0;
+
+    // Find the respective (possibly different) indices of each summand's least
+    // significant digit, and walk towards the greatest significant digit (aka
+    // towards index 0). Again, if the two summands are of different lengths,
+    // they will get there at different times, and the one left decrementing
+    // alone in that case will be partnered with a '0' during the per-digit sum.
+
+    int i = a.size() - 1;
+    int j = b.size() - 1;
+    int digits_to_process = std::max(a.size(), b.size());
+
+    while ( digits_to_process-- > 0 ) {
+
+        digit_sum = ( (i >= 0) ? a[i--] : 0 )
+                  + ( (j >= 0) ? b[j--] : 0 )
+                  + carry;
+        ones_sum = digit_sum%10;
+        carry    = digit_sum/10;
+
+        sum.push_back(ones_sum);
+    }
+
+    // don't forget about the last carry!
+    if (carry != 0)
+        sum.push_back(carry);
+
+    // msd should be at index-0
+    std::reverse( sum.begin(), sum.end() );
+
+    return sum;
+}
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(intlist_addition_operator_tests)
+{   //
+    // specific edge cases
+    //
+    {
+        IntList a {0};
+        IntList b {0};
+        IntList a_plus_b {0};
+        BOOST_CHECK( a + b == a_plus_b );
+    }
+
+    {
+        IntList a {0,0,0,0};
+        IntList b {0};
+        IntList a_plus_b {0};
+        BOOST_CHECK( a + b == a_plus_b );
+    }
+
+    {
+        IntList a {0};
+        IntList b {0,0,0,0};
+        IntList a_plus_b {0};
+        BOOST_CHECK( a + b == a_plus_b );
+    }
+
+    {
+        IntList a {1,2,3};
+        IntList b {4,5,6};
+        IntList a_plus_b {5,7,9};
+        BOOST_CHECK( a + b == a_plus_b );
+    }
+
+    {
+        IntList a {0,0,1,2,3};
+        IntList b {4,5,6};
+        IntList a_plus_b {5,7,9};
+        BOOST_CHECK( a + b == a_plus_b );
+    }
+
+    {
+        IntList a (123);
+        IntList b {0,0,4,5,6};
+        IntList a_plus_b {5,7,9};
+        BOOST_CHECK( a + b == a_plus_b );
+    }
+
+    {
+        IntList a (9999);
+        IntList b (1);
+        IntList a_plus_b (10000);
+        BOOST_CHECK( a + b == a_plus_b );
+    }
+
+
+    {   //
+        // double-checking random values with c++ math
+        //
+        const unsigned int num_random_tests = 1000;
+
+        std::srand(std::time(nullptr));
+
+        for (auto i=0; i < num_random_tests; i++ ) {
+            //
+            // generate two random numbers, add them, and also add their integer
+            // list equivalents; verify that the two sums match.
+            //
+            auto a = std::rand();
+            auto b = std::rand();
+            auto c = a + b;
+
+            IntList s1(a);
+            IntList s2(b);
+            auto d = s1 + s2;
+
+            std::stringstream error_msg_ss;
+            error_msg_ss << "random test #" << i << ": " << a << " + " << b << " = " << c
+                         << " (was expecting " << d.to_uint() << ")";
+            BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
+        }
+    }
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// IntList subtraction operator (-) 
+// *******************************************************************************
+//
+// Subtract the second arbitrarily-lengthed IntList from the first one and return 
+// the result in another IntList.
+//
+// *******************************************************************************
+//
+//IntList operator-(const IntList& a, const IntList& b);
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(intlist_subtraction_operator_tests)
+{
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// A unsigned int representation of the contents of integer list (if it fits)
+// *******************************************************************************
+//
+// Just scale out and add up powers of 10.
+//
+// *******************************************************************************
+
+unsigned int IntList::to_uint()
+{
+    unsigned int sum = 0;
+    unsigned int ten_to_the_i = 1;
+
+    // start with the least significant digit, and add up the
+    // powers of 10. NOTE that we have to process index 0, and
+    // so the loop will fall through once we decrement into 
+    // negative index territory...
+
+    for ( int i=il.size()-1; i>=0; --i ) {
+        sum += ten_to_the_i * il[i];
+        ten_to_the_i *= 10;
+    }
+
+    return sum;
+}
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(intlist_to_uint_tests)
+{
+    unsigned int ui1 = 0;
+    IntList il1(0);
+    BOOST_ASSERT( il1.to_uint() == ui1 );
+
+    unsigned int ui2 = 7;
+    IntList il2(ui2);
+    BOOST_ASSERT( il2.to_uint() == ui2 );
+
+    unsigned int ui3 = 99999;
+    IntList il3(ui3);
+    BOOST_ASSERT( il3.to_uint() == ui3);
+
+    {   //
+        // double-checking random values with c++ math
+        //
+        const unsigned int num_random_tests = 1000;
+
+        std::srand(std::time(nullptr));
+
+        for (auto i=0; i < num_random_tests; i++ ) {
+            //
+            // generate two random numbers, add them, and also add their integer
+            // list equivalents; verify that the two sums match.
+            //
+            auto a = std::rand();
+            IntList s1(a);
+            auto b = s1.to_uint();
+
+            std::stringstream error_msg_ss;
+            error_msg_ss << "random test #" << i 
+                         << ": IntList initialized with unsigned int " << a 
+                         << " returned to_unit() value " << b 
+                         << " (was expecting " << a << ")";
+            BOOST_CHECK_MESSAGE( a == b, error_msg_ss.str() );
+        }
     }
 }
 #endif // BUILD_UNIT_TESTS

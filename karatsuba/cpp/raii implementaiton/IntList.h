@@ -50,6 +50,7 @@ private:
 public:
     // constructors
     IntList( std::initializer_list<value_type> il ); // init by initializer list
+    IntList( std::vector<value_type>& vec );         // init by vector of digits 
     IntList( unsigned int ui );                      // init by unsigned int 
 
     // copy & move semantics / construction
@@ -90,6 +91,9 @@ public:
 #if defined(BUILD_UNIT_TESTS)
     // anything that monkeys with the representation should test this condition before returning
     static inline bool is_zero_trimmed( const IntList& il ) { return msd(il.il) !=0 || il.size()<=1; }  
+
+    // useful for checking answers to randomly-generated tests
+    unsigned int to_uint();
 #endif
 
 #if defined(BUILD_UNIT_TESTS)
@@ -103,6 +107,9 @@ public:
     friend void value_check_int_list( std::initializer_list<value_type> il );
 #endif
 };
+
+IntList operator+(const IntList& a, const IntList& b);
+//IntList operator-(const IntList& a, const IntList& b);
 
 #if defined(BUILD_UNIT_TESTS)
 void set_previous_index_0_data_address(IntList& il);

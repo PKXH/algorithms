@@ -783,7 +783,7 @@ auto IntList::operator<=>(const IntList& that) const
         return std::strong_ordering::greater;
 
     // ...and if they're the same length, then go ahead and use default
-    // lexagraphic comparison.
+    // lexicographic comparison.
     else return this->il <=> that.il;
 }
 

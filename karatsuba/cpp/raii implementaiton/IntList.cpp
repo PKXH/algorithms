@@ -22,6 +22,7 @@
 #endif
 
 #include <assert.h>
+#include <limits.h>
 #include "IntList.h"
 
 
@@ -767,8 +768,25 @@ BOOST_AUTO_TEST_CASE(intlist_trim_leading_zeros_function_tests)
 // *******************************************************************************
 //
 // c++20 autogeneration of all comparison operator options by way of <=>
+// ...but we need a slightly customized <=> to treat these things like
+// numbers.
 //
 // *******************************************************************************
+//
+auto IntList::operator<=>(const IntList& that) const
+{
+    // If one is longer than the other, then that's the bigger
+    // one...
+    if ( this->size() < that.size() )
+        return std::strong_ordering::less;
+    else if ( this->size() > that.size() )
+        return std::strong_ordering::greater;
+
+    // ...and if they're the same length, then go ahead and use default
+    // lexagraphic comparison.
+    else return this->il <=> that.il;
+}
+
 //
 // -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
@@ -853,6 +871,15 @@ BOOST_AUTO_TEST_CASE(intlist_comparison_operator_tests)
 
         BOOST_ASSERT( il1a <=> il2  > 0 );  // take me to your leader, c++20! 
         BOOST_ASSERT(  il2 <=> il1a < 0 );  // 
+    }
+
+    {   //
+        // Make sure we're not doing per-character lexical comparison!
+        //
+        IntList a {9,9,9,9};
+        IntList b {4,9,9,9,9};
+
+        BOOST_ASSERT(a < b);
     }
 }
 #endif // BUILD_UNIT_TESTS
@@ -995,18 +1022,18 @@ BOOST_AUTO_TEST_CASE(intlist_addition_operator_tests)
             // generate two random numbers, add them, and also add their integer
             // list equivalents; verify that the two sums match.
             //
-            auto a = std::rand();
-            auto b = std::rand();
+            auto a = std::rand() % (UINT_MAX/2); // mind your head
+            auto b = std::rand() % (UINT_MAX/2); //
             auto c = a + b;
 
             IntList s1(a);
             IntList s2(b);
             auto d = s1 + s2;
-
+            
             std::stringstream error_msg_ss;
             error_msg_ss << "random test #" << i << ": " << a << " + " << b << " = " << c
                          << " (was expecting " << d.to_uint() << ")";
-            BOOST_CHECK_MESSAGE( c == d, error_msg_ss.str() );
+            BOOST_CHECK_MESSAGE( c == d.to_uint(), error_msg_ss.str() );
         }
     }
 }
@@ -1049,16 +1076,19 @@ BOOST_AUTO_TEST_CASE(intlist_subtraction_operator_tests)
 //
 unsigned int IntList::to_uint()
 {
-    unsigned int sum = 0;
-    unsigned int ten_to_the_i = 1;
-
-// TODO: add max_int guard; can implement by creating an int_list of max_int
-// and doing that comparison first?
+    IntList uint_max(UINT_MAX);
+    if (*this <=> uint_max > 0) {
+        std::string msg = "to_uint() integer must be no larger than UINT_MAX (" + std::to_string( UINT_MAX ) + ")";
+        throw std::out_of_range( msg );
+    }
 
     // start with the least significant digit, and add up the
     // powers of 10. NOTE that we have to process index 0, and
     // so the loop will fall through once we decrement into 
     // negative index territory...
+
+    unsigned int sum = 0;
+    unsigned int ten_to_the_i = 1;
 
     for ( int i=il.size()-1; i>=0; --i ) {
         sum += ten_to_the_i * il[i];
@@ -1086,6 +1116,10 @@ BOOST_AUTO_TEST_CASE(intlist_to_uint_tests)
     unsigned int ui3 = 99999;
     IntList il3(ui3);
     BOOST_ASSERT( il3.to_uint() == ui3);
+
+    IntList il_too_big (UINT_MAX);
+    il_too_big.push_back(9); // now we've done it
+    BOOST_CHECK_THROW( unsigned int val = il_too_big.to_uint(), std::out_of_range);
 
     {   //
         // double-checking random values with c++ math

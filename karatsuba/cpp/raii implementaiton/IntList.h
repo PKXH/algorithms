@@ -12,11 +12,9 @@
 #define __int_list_h
 
 #include <vector>
-#include <memory>
 #include <string>
 #include <compare>
 #include <ranges>
-// PKXH TODO: do we really need <memory> included?
 
 class IntList;
 //class WriteCheck;

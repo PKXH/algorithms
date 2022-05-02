@@ -1052,13 +1052,13 @@ IntList operator-(const IntList& a, const IntList& b)
 
     std::vector<IntList::value_type> diff;
 
-    auto ai = ac.rbegin();                          // we're going to use iterators to subtract digit-by-digit so we can handle
-    auto bi = bc.rbegin();                          // as arbitrarily-lengthed numbers as the computer an throw at us...
+    auto ai = ac.rbegin();                           // we're going to use iterators to subtract digit-by-digit so we can handle
+    auto bi = bc.rbegin();                           // as arbitrarily-lengthed numbers as the computer an throw at us...
 
-    for ( ; ai != ac.rend() ; ++ai ) {              // 'a' should be same size as 'b' or bigger, so use it to control full loop
+    for ( ; ai != ac.rend() ; ++ai ) {               // 'a' should be same size as 'b' or bigger, so use it to control full loop
         int bz;
-        if (bi!=bc.rend()) {                        // 'b' may be shorter than 'a'; if it is we'll have to "fake" zeros for it
-            bz = *bi;                               // once we run out of digits...
+        if (bi!=bc.rend()) {                         // 'b' may be shorter than 'a'; if it is we'll have to "fake" zeros for it
+            bz = *bi;                                // once we run out of digits...
             ++bi;
         }
         else
@@ -1079,7 +1079,7 @@ IntList operator-(const IntList& a, const IntList& b)
 
 // we initially used this trashy array indexing version...
 // isn't there some cleaner way to do it that
-// these two ways? That's easier to see that it should work???
+// these two ways? Should find a more elegant way to do this... 
 //
 //     for (long long int i=max_size-1; i >= 0; --i) {
 //         auto size_diff = max_size - min_size;

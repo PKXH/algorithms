@@ -574,30 +574,13 @@ BOOST_AUTO_TEST_CASE(IntList_throw_on_any_invalid_value_range_tests)
 
 
 // *******************************************************************************
-// IntList::begin
+// IntList iterators 
 // *******************************************************************************
 //
-// return a pointer to the first item in this integer list.
+// IntList iterators are simple pass-throughs of the internal std data 
+// structure's iterators, so they should work; just do some cursory testing.
 //
 // *******************************************************************************
-//
-IntList::value_type* IntList::begin()
-{
-    return &il[0];
-}
-//
-// *******************************************************************************
-// IntList::end
-// *******************************************************************************
-//
-// return a pointer to the "end" of this integer list.
-//
-// *******************************************************************************
-//
-IntList::value_type* IntList::end()
-{
-    return this->begin() + this->size(); 
-}
 //
 // -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
@@ -618,18 +601,6 @@ BOOST_AUTO_TEST_CASE(intlist_begin_end_function_tests)
 #endif // BUILD_UNIT_TESTS
 // -------------------------------------------------------------------------------
 
-
-const IntList::value_type* IntList::cbegin() const
-{
-//    return il.cbegin();
-    return &il[0]; 
-}
-
-const IntList::value_type* IntList::cend() const
-{
-//    return il.cend();
-    return this->cbegin() + this->size();
-}
 
 
 // *******************************************************************************
@@ -1051,7 +1022,87 @@ BOOST_AUTO_TEST_CASE(intlist_addition_operator_tests)
 //
 // *******************************************************************************
 //
-//IntList operator-(const IntList& a, const IntList& b);
+IntList operator-(const IntList& a, const IntList& b)
+{   //
+    // make sure a>=b
+    //
+    if (!(a >= b)) {
+        std::stringstream error_msg_ss;
+        error_msg_ss << "a (" << a.to_str() << ") must be >= (" << b.to_str() << ")";
+        throw std::invalid_argument(error_msg_ss.str());
+    }
+
+    //
+    // make a note of our sizes; find the biggest
+    //
+    auto a_size = a.size();
+    auto b_size = b.size();
+    auto [max_size, min_size] = a_size >= b_size 
+                              ? std::make_pair(a_size, b_size) 
+                              : std::make_pair(b_size, a_size);
+
+    BOOST_ASSERT( a_size >= b_size); // we expect only non-negative differences
+
+    //
+    // make copies of our inputs since we're going to be changing them during
+    // the calculation
+    //
+    auto ac = a.clone();
+    auto bc = b.clone();
+
+    std::vector<IntList::value_type> diff;
+
+    auto ai = ac.rbegin();                          // we're going to use iterators to subtract digit-by-digit so we can handle
+    auto bi = bc.rbegin();                          // as arbitrarily-lengthed numbers as the computer an throw at us...
+
+    for ( ; ai != ac.rend() ; ++ai ) {              // 'a' should be same size as 'b' or bigger, so use it to control full loop
+        int bz;
+        if (bi!=bc.rend()) {                        // 'b' may be shorter than 'a'; if it is we'll have to "fake" zeros for it
+            bz = *bi;                               // once we run out of digits...
+            ++bi;
+        }
+        else
+            bz = 0;
+        int d = *ai - bz;                            // subtract least-significant unprocessed digit in 'a' from counterpart in 'b'
+        BOOST_ASSERT( -10 <= d && d < 10 );          // (we at most have a single digit minus another single digit)
+        if (d < 0) {                                 // if a's digit was bigger than b's...
+            auto brwi = ai+1;                        // get ready to start ripple-borrowing at the NEXT bigger digit...
+            for ( ; *brwi == 0; ++brwi ) {           // while the next-bigger digit of 'a' is 0...
+                BOOST_ASSERT( brwi != ac.rend() );   // (we always expect a >= b, so the final 'a' digit shoudl never be 0) 
+                *brwi = 9;                           // make the 0 into a 9
+            }
+            *brwi -= 1;                              // we've finally reached a non-zero digit to "borrow" from, so borrow
+            d += 10;                                 // add the borrowed 10 from the next digit to the underwater value
+        }
+        diff.insert(diff.begin(),d);                 // we are big endian, so push more significant values in at the front
+    }
+
+// we initially used this trashy array indexing version...
+// isn't there some cleaner way to do it that
+// these two ways? That's easier to see that it should work???
+//
+//     for (long long int i=max_size-1; i >= 0; --i) {
+//         auto size_diff = max_size - min_size;
+//         int d = ac[i] - ((i-size_diff) < b_size ? bc[i-size_diff] : 0);  
+//         if (d < 0) {                                                     
+//             auto ci = 1;                                                 
+//             while(ac[i-ci] == 0) {                                       
+//                 BOOST_ASSERT( i-ci >= 0 );                               
+//                 ac[i-ci] = 9;                                            
+//                 ci -= 1;                                                 // and go to the next-bigger digit
+//             }
+//             ac[i-ci] -= 1;                                               
+//             d += 10;                                                     
+//         }
+//         diff.insert(diff.begin(),d);                                     
+// //        diff.push_back(d);
+//     }
+// 
+// //    if (diff.size() == 0)
+// //        diff.push_back(0);
+
+    return IntList(diff);                            // move our calculated difference out to the caller
+}
 //
 // -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
@@ -1059,7 +1110,110 @@ BOOST_AUTO_TEST_CASE(intlist_addition_operator_tests)
 //
 #ifdef BUILD_UNIT_TESTS
 BOOST_AUTO_TEST_CASE(intlist_subtraction_operator_tests)
-{
+{   //
+    // make sure the integer list subtraction is working as expected
+    //
+    using vui = std::vector<unsigned int>;
+
+    {   //
+        // make sure that invalid string inputs are rejected and called out by name
+        //
+        IntList a(998);
+        IntList b(999);
+        std::stringstream expected_error_msg_ss;
+        expected_error_msg_ss << "a (" << a.to_str() << ") must be >= (" << b.to_str() << ")";
+        BOOST_CHECK_EXCEPTION( a - b, 
+                               std::invalid_argument,
+                               [&](const std::invalid_argument& ex){ 
+                                   BOOST_CHECK_EQUAL(ex.what(), expected_error_msg_ss.str());
+                                   return true;
+                               }
+                             );
+    }
+
+    //
+    // specific edge cases
+    //
+    {
+        IntList a({0});
+        IntList b({0});
+        IntList a_minus_b({0});
+        BOOST_CHECK( a - b == a_minus_b );
+    }
+
+    {
+        IntList a({0,0,0,0});
+        IntList b({0});
+        IntList a_minus_b({0});
+        BOOST_CHECK( a - b ==  a_minus_b );
+    }
+
+    {
+        IntList a({0});
+        IntList b({0,0,0,0});
+        IntList a_minus_b({0});
+        BOOST_CHECK( a - b == a_minus_b ); 
+    }
+
+    {
+        IntList a(456);
+        IntList b(123);
+        IntList a_minus_b(333);
+        BOOST_CHECK( a - b == a_minus_b );
+    }
+
+    {
+        IntList a(456);
+        IntList b({0,0,1,2,3});
+        IntList a_minus_b(333);
+        BOOST_CHECK( a - b == a_minus_b );
+    }
+
+    {
+        IntList a({0,0,4,5,6});
+        IntList b(123);
+        IntList a_minus_b(333);
+        BOOST_CHECK( a - b == a_minus_b );
+    }
+
+    {
+        IntList a(10000);
+        IntList b(1);
+        IntList a_minus_b(9999);
+        BOOST_CHECK( a - b == a_minus_b );
+    }
+
+    {
+        IntList a(1792339757);
+        IntList b(218598761);
+        IntList a_minus_b(1573740996);
+        BOOST_CHECK( a - b == a_minus_b );
+    }
+
+    //
+    // double-checking random values with c++ math
+    //
+    const unsigned int num_random_tests = 1000;
+
+    for (auto i=1; i <= num_random_tests; i++ ) {
+        //
+        // generate two random numbers; subtract the bigger one from the smaller one, 
+        // and also their integer list equivalents; verify that the two differences match.
+        //
+        auto a = std::rand();
+        auto b = std::rand();
+        auto [bigger, smaller] = a>b ? std::make_pair(a,b) : std::make_pair(b,a);
+        auto c = bigger - smaller;
+
+        IntList big(bigger);
+        IntList small(smaller);
+        auto d = big - small;
+
+        std::stringstream error_msg_ss;
+        error_msg_ss << "random test #" << i << ": " << bigger << " - " << smaller << " = " << c
+                     << " (but we got " << d.to_uint() << ")";
+        BOOST_CHECK_MESSAGE(c == d.to_uint(), error_msg_ss.str());
+    }
 }
 #endif // BUILD_UNIT_TESTS
 // -------------------------------------------------------------------------------
@@ -1106,7 +1260,7 @@ unsigned int IntList::to_uint()
 BOOST_AUTO_TEST_CASE(intlist_to_uint_tests)
 {
     unsigned int ui1 = 0;
-    IntList il1(0);
+    IntList il1(ui1);
     BOOST_ASSERT( il1.to_uint() == ui1 );
 
     unsigned int ui2 = 7;
@@ -1143,6 +1297,75 @@ BOOST_AUTO_TEST_CASE(intlist_to_uint_tests)
                          << " returned to_unit() value " << b 
                          << " (was expecting " << a << ")";
             BOOST_CHECK_MESSAGE( a == b, error_msg_ss.str() );
+        }
+    }
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// A string representation of the contents of integer list
+// *******************************************************************************
+//
+std::string IntList::to_str() const
+{
+    std::stringstream str;
+
+    for (auto i=il.begin(); i!=il.end(); ++i)
+        str << *i ;
+
+    return str.str(); 
+}
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+BOOST_AUTO_TEST_CASE(intlist_to_str_tests)
+{
+    unsigned int ui1 = 0;
+    IntList il1(ui1);
+    auto t1 = il1.to_str();
+    auto t2 = std::to_string(ui1);
+    BOOST_ASSERT( il1.to_str() == std::to_string(ui1) );
+
+    unsigned int ui2 = 7;
+    IntList il2(ui2);
+    BOOST_ASSERT( il2.to_str() == std::to_string(ui2) );
+
+    unsigned int ui3 = 99999;
+    IntList il3(ui3);
+    BOOST_ASSERT( il3.to_str() == std::to_string(ui3) );
+
+    IntList il_too_big (UINT_MAX);
+    il_too_big.push_back(9); // should still be ok; string has arbitrary length 
+    BOOST_CHECK_NO_THROW( auto val = il_too_big.to_str() );
+
+    {   //
+        // double-checking random values with c++ math
+        //
+        const unsigned int num_random_tests = 1000;
+
+        std::srand(std::time(nullptr));
+
+        for (auto i=0; i < num_random_tests; i++ ) {
+            //
+            // generate two random numbers, add them, and also add their integer
+            // list equivalents; verify that the two sums match.
+            //
+            auto a = std::rand();
+            IntList s1(a);
+            auto b = s1.to_str();
+
+            std::stringstream error_msg_ss;
+            error_msg_ss << "random test #" << i 
+                         << ": IntList initialized with unsigned int " << a 
+                         << " returned to_str() value " << b 
+                         << " (was expecting " << a << ")";
+            BOOST_CHECK_MESSAGE( std::to_string(a) == b, error_msg_ss.str() );
         }
     }
 }

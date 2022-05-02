@@ -80,12 +80,24 @@ public:
 
     unsigned long size() const { return il.size(); }
 
-    // iterator support 
-    value_type* begin();
-    value_type* end  ();
-    //
-    const value_type* cbegin() const;
-    const value_type* cend() const;
+    // available iterator types
+    using iterator = int_list_t::iterator;
+    using const_iterator = int_list_t::const_iterator;
+    using reverse_iterator = int_list_t::reverse_iterator;
+    using const_reverse_iterator = int_list_t::const_reverse_iterator;
+
+    // iterator access
+    iterator begin() { return il.begin(); }
+    iterator end()   { return il.end  (); } 
+
+    const_iterator cbegin() const { return il.cbegin(); }
+    const_iterator cend()   const { return il.cend();   }
+
+    reverse_iterator rbegin() { return il.rbegin(); }
+    reverse_iterator rend()   { return il.rend();   }
+
+    const_reverse_iterator crbegin() const { return il.crbegin(); }
+    const_reverse_iterator crend() const   { return il.crend();   }
 
 #if defined(BUILD_UNIT_TESTS)
     // anything that monkeys with the representation should test this condition before returning
@@ -93,6 +105,8 @@ public:
 
     // useful for checking answers to randomly-generated tests
     unsigned int to_uint();
+    std::string to_str() const;
+
 #endif
 
 #if defined(BUILD_UNIT_TESTS)
@@ -108,7 +122,7 @@ public:
 };
 
 IntList operator+(const IntList& a, const IntList& b);
-//IntList operator-(const IntList& a, const IntList& b);
+IntList operator-(const IntList& a, const IntList& b);
 
 #if defined(BUILD_UNIT_TESTS)
 void set_previous_index_0_data_address(IntList& il);

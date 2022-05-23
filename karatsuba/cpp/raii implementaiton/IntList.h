@@ -39,6 +39,10 @@ private:
     static inline const value_type& msd (const int_list_t& il ) { return il.front(); }
     static inline void delete_msd (int_list_t& il ) { il.erase(il.begin()); }
 
+    // lsd utility functions
+    static inline const value_type& lsd (const int_list_t& il ) { return il.back(); }
+    static inline void delete_lsd (int_list_t& il ) { il.erase(il.end()-1); }
+
     static void throw_on_invalid_value_range( const value_type& v);
     static void throw_on_any_invalid_value_range( const int_list_t& il);
     static void throw_on_invalid_min_size( const int_list_t& il );
@@ -114,6 +118,8 @@ public:
     friend bool has_same_index_0_data_address_as_previous(IntList& il);
 
     // for testing initialization helpers and validators
+    friend void run_msd_tests();
+    friend void run_lsd_tests();
     friend void run_trim_leading_zeros_tests(); 
     friend void size_check_int_list_representation( std::initializer_list<IntList::value_type> il );
     friend void value_check_int_list_value( const value_type& val );

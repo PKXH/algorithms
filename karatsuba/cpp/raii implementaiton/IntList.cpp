@@ -642,6 +642,92 @@ BOOST_AUTO_TEST_CASE(intlist_push_back_function_tests)
 // -------------------------------------------------------------------------------
 
 
+// *******************************************************************************
+// IntList::msd
+// *******************************************************************************
+//
+// Return the value of the most significant digit.
+//
+// *******************************************************************************
+//
+// Defined in class declaration. 
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+void run_msd_tests()
+{   //
+    // Just try it out for a few values 
+    // 
+    IntList::int_list_t il1 {1};
+    BOOST_ASSERT( IntList::msd(il1) == 1 );
+
+    IntList::int_list_t il2 { 9,8,7,6,5,4,3,2,1 };
+    BOOST_ASSERT( IntList::msd(il2) == 9 );
+
+    IntList::delete_msd(il2);
+    BOOST_ASSERT( IntList::msd(il2) == 8 );
+
+    IntList::int_list_t il3 { 5,6,3,8,0,0,2,4,6,2,7,8,9,3,0,1,1,2,3,2,5,4,5,7,3,4,5,6,1,2,4,0,7,9,8,4,6,4,8 };
+    BOOST_ASSERT( IntList::msd(il3) == 5 );
+
+    IntList::delete_msd(il3);
+    BOOST_ASSERT( IntList::msd(il3) == 6 );
+}
+
+BOOST_AUTO_TEST_CASE(intlist_msd_function_tests)
+{ 
+    run_msd_tests();
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
+
+
+// *******************************************************************************
+// IntList::lsd
+// *******************************************************************************
+//
+// Return the value of the least significant digit.
+//
+// *******************************************************************************
+//
+// Defined in class declaration. 
+//
+// -------------------------------------------------------------------------------
+//                             FUNCTIONALITY TESTS
+// -------------------------------------------------------------------------------
+//
+#ifdef BUILD_UNIT_TESTS
+void run_lsd_tests()
+{   //
+    // Just try it out for a few values 
+    // 
+    IntList::int_list_t il1 {1};
+    BOOST_ASSERT( IntList::lsd(il1) == 1 );
+
+    IntList::int_list_t il2 { 9,8,7,6,5,4,3,2,1 };
+    BOOST_ASSERT( IntList::lsd(il2) == 1 );
+
+    IntList::delete_lsd(il2);
+    BOOST_ASSERT( IntList::lsd(il2) == 2 ); 
+
+    IntList::int_list_t il3 { 5,6,3,8,0,0,2,4,6,2,7,8,9,3,0,1,1,2,3,2,5,4,5,7,3,4,5,6,1,2,4,0,7,9,8,4,6,4,8 };
+    BOOST_ASSERT( IntList::lsd(il3) == 8 );
+
+    IntList::delete_lsd(il3);
+    BOOST_ASSERT( IntList::lsd(il3) == 4 );
+}
+
+BOOST_AUTO_TEST_CASE(intlist_lsd_function_tests)
+{ 
+    run_lsd_tests();
+}
+#endif // BUILD_UNIT_TESTS
+// -------------------------------------------------------------------------------
+
 
 // *******************************************************************************
 // IntList::trim_leading_zeros

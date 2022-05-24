@@ -103,13 +103,15 @@ public:
     const_reverse_iterator crbegin() const { return il.crbegin(); }
     const_reverse_iterator crend() const   { return il.crend();   }
 
+    // generate string representation
+    std::string to_str() const;
+
 #if defined(BUILD_UNIT_TESTS)
     // anything that monkeys with the representation should test this condition before returning
     static inline bool is_zero_trimmed( const IntList& il ) { return msd(il.il) !=0 || il.size()<=1; }  
 
     // useful for checking answers to randomly-generated tests
     unsigned int to_uint();
-    std::string to_str() const;
 
 #endif
 

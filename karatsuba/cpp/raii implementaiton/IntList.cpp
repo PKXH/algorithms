@@ -23,6 +23,11 @@
 
 #include <assert.h>
 #include <limits.h>
+
+#include <string>
+#include <iostream>
+#include <sstream>
+
 #include "IntList.h"
 
 
@@ -51,7 +56,9 @@ IntList::IntList( std::initializer_list<value_type> ilist )
     throw_on_any_invalid_value_range( il );
     trim_leading_zeros( il );
 
+#ifdef BUILD_UNIT_TESTS
     BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
+#endif
 }
 //
 // -------------------------------------------------------------------------------
@@ -118,7 +125,9 @@ IntList::IntList( std::vector<value_type>& vec )
     throw_on_any_invalid_value_range( il );
     trim_leading_zeros( il );
 
+#ifdef BUILD_UNIT_TESTS
     BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
+#endif
 }
 //
 // -------------------------------------------------------------------------------
@@ -185,7 +194,9 @@ IntList::IntList( unsigned int n )
             n/=10;
         }
 
+#ifdef BUILD_UNIT_TESTS
     BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
+#endif
 }
 //
 // -------------------------------------------------------------------------------
@@ -247,7 +258,9 @@ BOOST_AUTO_TEST_CASE(intlist_unsigned_int_initialization_tests)
 IntList::IntList( IntList&& il )
     : il{std::move(il.il)}
 {
+#ifdef BUILD_UNIT_TESTS
     BOOST_ASSERT( IntList::is_zero_trimmed(*this) );
+#endif
 }
 //
 //                             FUNCTIONALITY TESTS
@@ -289,7 +302,9 @@ BOOST_AUTO_TEST_CASE(IntList_move_constructor_tests)
 IntList& IntList::operator=(IntList&& il)
 {
     this->il = std::move(il.il); // invoke std container move semantics
+#ifdef BUILD_UNIT_TESTS
     BOOST_ASSERT( IntList::is_zero_trimmed( *this ) );
+#endif
     return *this;
 }
 //
@@ -1072,7 +1087,7 @@ BOOST_AUTO_TEST_CASE(intlist_addition_operator_tests)
         //
         const unsigned int num_random_tests = 1000;
 
-        std::srand(std::time(nullptr));
+        std::srand(time(nullptr));
 
         for (auto i=0; i < num_random_tests; i++ ) {
             //
@@ -1127,7 +1142,9 @@ IntList operator-(const IntList& a, const IntList& b)
                               ? std::make_pair(a_size, b_size) 
                               : std::make_pair(b_size, a_size);
 
+#ifdef BUILD_UNIT_TESTS
     BOOST_ASSERT( a_size >= b_size); // we expect only non-negative differences
+#endif
 
     //
     // make copies of our inputs since we're going to be changing them during
@@ -1150,11 +1167,15 @@ IntList operator-(const IntList& a, const IntList& b)
         else
             bz = 0;
         int d = *ai - bz;                            // subtract least-significant unprocessed digit in 'a' from counterpart in 'b'
+#ifdef BUILD_UNIT_TESTS
         BOOST_ASSERT( -10 <= d && d < 10 );          // (we at most have a single digit minus another single digit)
+#endif
         if (d < 0) {                                 // if a's digit was bigger than b's...
             auto brwi = ai+1;                        // get ready to start ripple-borrowing at the NEXT bigger digit...
             for ( ; *brwi == 0; ++brwi ) {           // while the next-bigger digit of 'a' is 0...
+#ifdef BUILD_UNIT_TESTS
                 BOOST_ASSERT( brwi != ac.rend() );   // (we always expect a >= b, so the final 'a' digit shoudl never be 0) 
+#endif
                 *brwi = 9;                           // make the 0 into a 9
             }
             *brwi -= 1;                              // we've finally reached a non-zero digit to "borrow" from, so borrow
@@ -1314,6 +1335,7 @@ BOOST_AUTO_TEST_CASE(intlist_subtraction_operator_tests)
 //
 // *******************************************************************************
 //
+#ifdef BUILD_UNIT_TESTS
 unsigned int IntList::to_uint()
 {
     IntList uint_max(UINT_MAX);
@@ -1337,6 +1359,7 @@ unsigned int IntList::to_uint()
 
     return sum;
 }
+#endif
 //
 // -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
@@ -1366,7 +1389,7 @@ BOOST_AUTO_TEST_CASE(intlist_to_uint_tests)
         //
         const unsigned int num_random_tests = 1000;
 
-        std::srand(std::time(nullptr));
+        std::srand(time(nullptr));
 
         for (auto i=0; i < num_random_tests; i++ ) {
             //
@@ -1435,7 +1458,7 @@ BOOST_AUTO_TEST_CASE(intlist_to_str_tests)
         //
         const unsigned int num_random_tests = 1000;
 
-        std::srand(std::time(nullptr));
+        std::srand(time(nullptr));
 
         for (auto i=0; i < num_random_tests; i++ ) {
             //

@@ -1575,7 +1575,7 @@ BOOST_AUTO_TEST_CASE(has_same_index_0_data_address_function_tests)
 
 
 // *******************************************************************************
-// test_move_return (TEST BUILD-ONLY FUNCTION)
+// test_move_return* (TEST BUILD-ONLY FUNCTIONS)
 // *******************************************************************************
 //
 // Test the move constructor during function return-by-value 
@@ -1594,6 +1594,24 @@ Container test_move_return(Container& c)
 }
 #endif
 //
+template<typename Container>
+std::pair<Container, Container> test_move_return_pair( Container& a_in, Container& b_in, bool apply_move_cast )
+{
+    Container a = std::move(a_in);
+    Container b = std::move(b_in);
+
+    // we expect that the compiler will not apply move semantics when creating this pair
+    // because it is all happening within the scope of this function. So if we want the
+    // move to happen we'll have to make sure the stuff to be moved is moved into tuple
+    // prior to the return...
+
+    if (apply_move_cast)
+        return std::make_pair(std::move(a),std::move(b));
+    else
+        return std::make_pair(a, b);
+}
+//
+//
 // -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
 // -------------------------------------------------------------------------------
@@ -1609,6 +1627,36 @@ BOOST_AUTO_TEST_CASE(test_move_return_function_tests)
     // Should MOVE when returning from local variable in function.
     auto v2 = test_move_return(v1);
     BOOST_ASSERT( pv1 == &v2[0] );
+
+    {   //
+        // testing necessity of applying move cast
+        // when creating tuple
+        //
+        std::vector<unsigned int> v2a {3,2,1};
+        std::vector<unsigned int> v2b {6,5,4};
+        auto pv2a = &v2a[0];
+        auto pv2b = &v2b[0];
+
+        // Should MOVE when returning from local variable in function
+        auto [a,b] = test_move_return_pair(v2a, v2b, true);
+        BOOST_ASSERT( pv2a == &a[0] );
+        BOOST_ASSERT( pv2b == &b[0] ); 
+    }
+
+    {   //
+        // testing necessity of applying move cast
+        // when creating tuple
+        //
+        std::vector<unsigned int> v2a {3,2,1};
+        std::vector<unsigned int> v2b {6,5,4};
+        auto pv2a = &v2a[0];
+        auto pv2b = &v2b[0];
+
+        // Should NOT MOVE when returning from local variable in function
+        auto [a,b] = test_move_return_pair(v2a, v2b, false);
+        BOOST_ASSERT( pv2a != &a[0] );
+        BOOST_ASSERT( pv2b != &b[0] ); 
+    }
 }
 #endif // BUILD_UNIT_TESTS
 // -------------------------------------------------------------------------------

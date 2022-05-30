@@ -62,14 +62,6 @@ public:
     // manual initialization
     void push_back(value_type);
 
-    // class operators
-    // PKXH TODO: this time, let's not put any operators inside the class that don't
-    // need to be inside the class just as a matter of Stroustrupness.
-
-    // c++20 autocomparison generation
-//    auto operator<=>(const IntList&) const; // not default; straight lexicographic comparison is not appropriate
-//    bool operator==(const IntList&) const = default; // have to explicitly state this since we have custom <=> 
-    
     // copy & move semantics / operators 
     IntList& operator=(const IntList& il) = delete; //no copy operator!
     IntList& operator=(IntList&& il); // move operator

@@ -842,24 +842,9 @@ BOOST_AUTO_TEST_CASE(intlist_trim_leading_zeros_function_tests)
 //
 // c++20 autogeneration of all comparison operator options by way of <=>
 // ...but we need a slightly customized <=> to treat these things like
-// numbers.
+// numbers. See header for definition.
 //
 // *******************************************************************************
-//
-//auto IntList::operator<=>(const IntList& that) const
-//{
-//    // If one is longer than the other, then that's the bigger
-//    // one...
-//    if ( this->size() < that.size() )
-//        return std::strong_ordering::less;
-//    else if ( this->size() > that.size() )
-//        return std::strong_ordering::greater;
-//
-//    // ...and if they're the same length, then go ahead and use default
-//    // lexicographic comparison.
-//    else return this->il <=> that.il;
-//}
-
 //
 // -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
@@ -1659,22 +1644,3 @@ BOOST_AUTO_TEST_CASE(test_move_return_function_tests)
 }
 #endif // BUILD_UNIT_TESTS
 // -------------------------------------------------------------------------------
-
-//#include <cassert>
-//
-//int main() {
-//    {   //
-//        // make sure that equal values are found to be equal
-//        //
-//        IntList il1 {3};
-//        IntList il2 {3};
-//        assert(!( il1 >  il2 ));
-//        assert(!( il1 <  il2 ));
-//        assert(   il1 >= il2  );
-//        assert(   il1 <= il2  );
-//        assert(   il1 == il2  );
-//        assert(!( il1 != il2 ));
-//    }
-//
-//    return 0;
-//}

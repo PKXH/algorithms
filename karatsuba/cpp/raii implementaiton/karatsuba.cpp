@@ -224,14 +224,6 @@ BOOST_AUTO_TEST_CASE( zero_padded_integer_list_split_test )
 #endif // BUILD_UNIT_TESTS
 
 
-/*
-IntList karatsuba( const IntList& x, const IntList& y) {
-    IntList test {0};
-    return test;
-}
-*/
-
-
 // *******************************************************************************
 // Calculate a product using Karatsuba multiplication.
 // x, y are integer list representations of arbitrarily large integers

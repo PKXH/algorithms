@@ -1168,30 +1168,6 @@ IntList operator-(const IntList& a, const IntList& b)
         diff.insert(diff.begin(),d);                 // we are big endian, so push more significant values in at the front
     }
 
-// we initially used this trashy array indexing version...
-// isn't there some cleaner way to do it that
-// these two ways? Should find a more elegant way to do this... 
-//
-//     for (long long int i=max_size-1; i >= 0; --i) {
-//         auto size_diff = max_size - min_size;
-//         int d = ac[i] - ((i-size_diff) < b_size ? bc[i-size_diff] : 0);  
-//         if (d < 0) {                                                     
-//             auto ci = 1;                                                 
-//             while(ac[i-ci] == 0) {                                       
-//                 BOOST_ASSERT( i-ci >= 0 );                               
-//                 ac[i-ci] = 9;                                            
-//                 ci -= 1;                                                 // and go to the next-bigger digit
-//             }
-//             ac[i-ci] -= 1;                                               
-//             d += 10;                                                     
-//         }
-//         diff.insert(diff.begin(),d);                                     
-// //        diff.push_back(d);
-//     }
-// 
-// //    if (diff.size() == 0)
-// //        diff.push_back(0);
-
     return IntList(diff);                            // move our calculated difference out to the caller
 }
 //

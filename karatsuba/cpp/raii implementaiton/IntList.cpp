@@ -630,6 +630,7 @@ void IntList::push_back(value_type n)
 {
     IntList::throw_on_invalid_value_range( n );
     il.push_back( n );
+    IntList::trim_leading_zeros( il );
 }
 //
 // -------------------------------------------------------------------------------
@@ -845,19 +846,19 @@ BOOST_AUTO_TEST_CASE(intlist_trim_leading_zeros_function_tests)
 //
 // *******************************************************************************
 //
-auto IntList::operator<=>(const IntList& that) const
-{
-    // If one is longer than the other, then that's the bigger
-    // one...
-    if ( this->size() < that.size() )
-        return std::strong_ordering::less;
-    else if ( this->size() > that.size() )
-        return std::strong_ordering::greater;
-
-    // ...and if they're the same length, then go ahead and use default
-    // lexicographic comparison.
-    else return this->il <=> that.il;
-}
+//auto IntList::operator<=>(const IntList& that) const
+//{
+//    // If one is longer than the other, then that's the bigger
+//    // one...
+//    if ( this->size() < that.size() )
+//        return std::strong_ordering::less;
+//    else if ( this->size() > that.size() )
+//        return std::strong_ordering::greater;
+//
+//    // ...and if they're the same length, then go ahead and use default
+//    // lexicographic comparison.
+//    else return this->il <=> that.il;
+//}
 
 //
 // -------------------------------------------------------------------------------
@@ -1335,8 +1336,7 @@ BOOST_AUTO_TEST_CASE(intlist_subtraction_operator_tests)
 //
 // *******************************************************************************
 //
-#ifdef BUILD_UNIT_TESTS
-unsigned int IntList::to_uint()
+unsigned int IntList::to_uint() const
 {
     IntList uint_max(UINT_MAX);
     if (*this <=> uint_max > 0) {
@@ -1359,7 +1359,6 @@ unsigned int IntList::to_uint()
 
     return sum;
 }
-#endif
 //
 // -------------------------------------------------------------------------------
 //                             FUNCTIONALITY TESTS
@@ -1660,3 +1659,22 @@ BOOST_AUTO_TEST_CASE(test_move_return_function_tests)
 }
 #endif // BUILD_UNIT_TESTS
 // -------------------------------------------------------------------------------
+
+//#include <cassert>
+//
+//int main() {
+//    {   //
+//        // make sure that equal values are found to be equal
+//        //
+//        IntList il1 {3};
+//        IntList il2 {3};
+//        assert(!( il1 >  il2 ));
+//        assert(!( il1 <  il2 ));
+//        assert(   il1 >= il2  );
+//        assert(   il1 <= il2  );
+//        assert(   il1 == il2  );
+//        assert(!( il1 != il2 ));
+//    }
+//
+//    return 0;
+//}

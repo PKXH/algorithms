@@ -67,8 +67,8 @@ public:
     // need to be inside the class just as a matter of Stroustrupness.
 
     // c++20 autocomparison generation
-    auto operator<=>(const IntList&) const; // not default; straight lexicographic comparison is not appropriate
-    bool operator==(const IntList&) const = default; // have to explicitly state this since we have custom <=> 
+//    auto operator<=>(const IntList&) const; // not default; straight lexicographic comparison is not appropriate
+//    bool operator==(const IntList&) const = default; // have to explicitly state this since we have custom <=> 
     
     // copy & move semantics / operators 
     IntList& operator=(const IntList& il) = delete; //no copy operator!
@@ -106,13 +106,30 @@ public:
     // generate string representation
     std::string to_str() const;
 
+    // generate uint representation (if small enough!)
+    unsigned int to_uint() const;
+
+    // c++20 autocomparison generation
+    auto operator<=>(const IntList& that) const
+    {
+        // If one is longer than the other, then that's the bigger
+        // one...
+        if ( this->size() < that.size() )
+            return std::strong_ordering::less;
+        else if ( this->size() > that.size() )
+            return std::strong_ordering::greater;
+    
+        // ...and if they're the same length, then go ahead and use default
+        // lexicographic comparison.
+        else return this->il <=> that.il;
+    }
+
+    bool operator==(const IntList&) const = default; // have to explicitly state this since we have custom <=> 
+
+
 #if defined(BUILD_UNIT_TESTS)
     // anything that monkeys with the representation should test this condition before returning
     static inline bool is_zero_trimmed( const IntList& il ) { return msd(il.il) !=0 || il.size()<=1; }  
-
-    // useful for checking answers to randomly-generated tests
-    unsigned int to_uint();
-
 #endif
 
 #if defined(BUILD_UNIT_TESTS)

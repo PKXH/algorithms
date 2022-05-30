@@ -14,9 +14,6 @@
 #include <compare>
 #include <ranges>
 
-class IntList;
-//class WriteCheck;
-
 class IntList
 //
 // An iterable list of non-negative integer digits

@@ -56,27 +56,11 @@ std::pair<IntList, IntList> split_int_list( const IntList& il, unsigned int spl_
     auto a = std::vector<unsigned int>();
     auto b = std::vector<unsigned int>();
 
-    // TODO: ok, the problem is this: we may be splitting against a much bigger int, 
-    // and so the split index will be far larger than our integer. In that case we don't
-    // want to keep going in the same direction, "past the end" of our digits. Rather we
-    // have some sort of prepend sitution. Well, this code in here right now seems kind
-    // of correct? The left part of the split will be 0 and the right will just be the
-    // number. So.....
-
-// TODO: think we'll be removing this; keeping the simple behavior, and having an adaptor
-// function that passes through an "adjusted" split index as if the incoming number was
-// zero-padded 
-//
-//    if (spl_idx >= size) {
-//        a.push_back(0);
-//        std::copy(il.cbegin(), il.cend(), std::back_inserter(b));
-//    } else {
-        for ( auto i=0; i<size; i++ ) 
-            if (i<spl_idx) 
-                a.push_back(il[i]);
-            else 
-                b.push_back(il[i]);
-//    }
+    for ( auto i=0; i<size; i++ ) 
+        if (i<spl_idx) 
+            a.push_back(il[i]);
+        else 
+            b.push_back(il[i]);
 
     // IntList doesn't like to be initialized with empty lists; make sure
     // that we have valid numeric digits for it.

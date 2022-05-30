@@ -49,19 +49,34 @@ static unsigned int power(unsigned int base, unsigned int exponent)
 // NOTE that "empty" integer lists resulting from the split are interpreted as 0!
 // *******************************************************************************
 //
-std::pair<IntList, IntList> split_int_list( IntList& il, unsigned int spl_idx)
+std::pair<IntList, IntList> split_int_list( const IntList& il, unsigned int spl_idx)
 {
     auto size = il.size();
 
     auto a = std::vector<unsigned int>();
     auto b = std::vector<unsigned int>();
 
-    for ( auto i=0; i<size; i++ ) 
+    // TODO: ok, the problem is this: we may be splitting against a much bigger int, 
+    // and so the split index will be far larger than our integer. In that case we don't
+    // want to keep going in the same direction, "past the end" of our digits. Rather we
+    // have some sort of prepend sitution. Well, this code in here right now seems kind
+    // of correct? The left part of the split will be 0 and the right will just be the
+    // number. So.....
 
-        if (i<spl_idx) 
-            a.push_back(il[i]);
-        else 
-            b.push_back(il[i]);
+// TODO: think we'll be removing this; keeping the simple behavior, and having an adaptor
+// function that passes through an "adjusted" split index as if the incoming number was
+// zero-padded 
+//
+//    if (spl_idx >= size) {
+//        a.push_back(0);
+//        std::copy(il.cbegin(), il.cend(), std::back_inserter(b));
+//    } else {
+        for ( auto i=0; i<size; i++ ) 
+            if (i<spl_idx) 
+                a.push_back(il[i]);
+            else 
+                b.push_back(il[i]);
+//    }
 
     // IntList doesn't like to be initialized with empty lists; make sure
     // that we have valid numeric digits for it.
@@ -121,75 +136,185 @@ BOOST_AUTO_TEST_CASE( integer_list_split_test )
 
 #endif // BUILD_UNIT_TESTS
 
+
+// *******************************************************************************
+// split the specified integer list into two, while assuming that the value
+// specified by 'il' is leading-zero-padded to a total length of 'total_digits'. 
+//
+// NOTE that "empty" integer lists resulting from the split are interpreted as 0!
+// *******************************************************************************
+//
+std::pair<IntList, IntList> split_zero_padded_int_list( const IntList& il, unsigned int spl_idx, unsigned int total_digits)
+{
+#ifdef BUILD_UNIT_TESTS 
+    BOOST_ASSERT( total_digits >= il.size() );
+#endif
+
+    // Adjust the split index to act as if the integer list value has a total prepended zero-padded
+    // length of 'total_digits' aka if the pad is longer than the split index, then the effective
+    // split index passed along will be 0; otherwise, subtract off the pad for the effective index.
+
+    auto pad_sz = total_digits - il.size();
+    auto adj_spl_idx = (pad_sz < spl_idx ) ? spl_idx - pad_sz : 0;
+
+    return split_int_list( il, adj_spl_idx );
+}
+
+#ifdef BUILD_UNIT_TESTS
+
+BOOST_AUTO_TEST_CASE( zero_padded_integer_list_split_test )
+{   //
+    // test a mix of cases
+    //
+    IntList il( 12345 );
+
+    const int num_zero_pad_tests = 10;
+    for ( int i=0; i < num_zero_pad_tests; i++ ) {
+        //
+        // these two functions should always give the same result for the same
+        // split if the zero pad has zero length...
+        //
+        auto [a ,b ] = split_int_list             ( il, i            );
+        auto [az,bz] = split_zero_padded_int_list ( il, i, il.size() );
+
+        BOOST_CHECK( a == az && b == bz ); 
+    }
+
+    {   //
+        // splitting 012345 at i=1
+        //
+        auto [a,b] = split_zero_padded_int_list( il, 1, il.size() + 1 );
+        IntList expected_a(0);
+        IntList expected_b(12345);
+
+        BOOST_CHECK( a == expected_a && b == expected_b );
+    }
+
+    {   //
+        // splitting 0012345 at i=3
+        //
+        auto [a,b] = split_zero_padded_int_list( il, 3, il.size() + 2 );
+        IntList expected_a(1);
+        IntList expected_b(2345);
+
+        BOOST_CHECK( a == expected_a && b == expected_b );
+    }
+
+    {   //
+        // splitting 0000012345 at i=10
+        //
+        auto [a,b] = split_zero_padded_int_list( il, 10, il.size() + 5 );
+        IntList expected_a(12345);
+        IntList expected_b(0);
+
+        BOOST_CHECK( a == expected_a && b == expected_b );
+    }
+
+    {   //
+        // splitting 000000000000...0000000012345 at i=10
+        //
+        auto [a,b] = split_zero_padded_int_list( il, 10, il.size() + 1000 );
+        IntList expected_a(0);
+        IntList expected_b(12345);
+
+        BOOST_CHECK( a == expected_a && b == expected_b );
+    }
+}
+
+#endif // BUILD_UNIT_TESTS
+
+
+/*
 IntList karatsuba( const IntList& x, const IntList& y) {
     IntList test {0};
     return test;
 }
+*/
 
-/*
+
 // *******************************************************************************
 // Calculate a product using Karatsuba multiplication.
 // x, y are integer list representations of arbitrarily large integers
-// returns an int_list_sp containing the product of the inputs 
+// returns an IntList containing the product of the inputs 
 // *******************************************************************************
 //
-int_list_sp karatsuba(int_list_sp x, int_list_sp y) {
+IntList karatsuba(const IntList& x, const IntList& y) {
 
-    long int x_size = x->size();
-    long int y_size = y->size();
+    auto x_size = x.size();
+    auto y_size = y.size();
 
     // we interpret an empty list as 0
-    if (x_size == 0 || y_size == 0)
-        return new_int_list_sp(0);
+    if (x_size == 0 || y_size == 0) {
+        IntList zero (0);
+        return zero;
+    }
 
     // if we're down to one digit, then multiply it out
-    else if (x_size == 1 && y_size == 1)
-        return new_int_list_sp( x->uint() * y->uint() );
+    else if (x_size == 1 && y_size == 1) {
+
+        auto xi = x.to_uint();
+        auto yi = y.to_uint();
+
+        IntList one_digit_product ( xi * yi );
+        return one_digit_product;
+    }
 
     else {
 
-// TODO: thinking we're going to want to take the floor since our split
-// starts from the msd?
-
         auto max_size = std::max(x_size, y_size);
-        unsigned int m = max_size/2 + (max_size%2?1:0); // take the ceil
+        auto m  = max_size/2 + (max_size%2?1:0); // take the ceil
         auto m2 = m*2;
 
-        auto [a,b] = split_int_list(x,m);
-        auto [c,d] = split_int_list(y,m);
+        auto [a,b] = split_zero_padded_int_list( x, max_size-m, max_size );  // on odd-lengthed values, split so the most 
+        auto [c,d] = split_zero_padded_int_list( y, max_size-m, max_size );  // significant part is smaller
 
-        auto s1 = karatsuba(a,c);
-        auto s2 = karatsuba(b,d);
+        auto    s1 = karatsuba(a,c);
+        auto    s2 = karatsuba(b,d);
         auto s1xs2 = karatsuba(a+b,c+d);
+
 #ifdef BUILD_UNIT_TESTS
-        BOOST_CHECK( s1xs2 >= s1 );
+        BOOST_CHECK( s1xs2      >= s1 );
         BOOST_CHECK( s1xs2 - s1 >= s2 );
 #endif 
 
         auto s3 = s1xs2 - s1 - s2;
-        auto s1zs = new_int_list_sp(*s1);
+
+        auto s1zs = s1.clone();
         for (auto i=0; i < m2; i++)
-            s1zs->append(0);
-        auto s3zs = new_int_list_sp(*s3);
+            s1zs.push_back(0);
+
+        auto s3zs = s3.clone();
         for (auto i=0; i < m; i++)
-            s3zs->append(0);
+            s3zs.push_back(0);
 
 #ifdef BUILD_UNIT_TESTS
         {   //
             // if it shouldn't be greater than unsigned maxint, check our 0-appends against
             // the actual multiplied-out version of the numbers
             //
-            BOOST_CHECK( s1zs->size() >= new_int_list_sp(UINT_MAX)->size() || s1zs == new_int_list_sp(s1->uint() * power(10,m2)) );
-            BOOST_CHECK( s3zs->size() >= new_int_list_sp(UINT_MAX)->size() || s3zs == new_int_list_sp(s3->uint() * power(10,m )) );
+            static IntList max_int (UINT_MAX);
+
+            if ( s1zs.size() < max_int.size() ) {
+                // 
+                // a.k.a. s1 == lhs * 10^(m2) ? 
+                //
+                IntList lhs_expo_version ( s1.to_uint() * power(10,m2) );
+                BOOST_CHECK( s1zs == lhs_expo_version );
+            }
+
+            if ( s3zs.size() < max_int.size() ) {
+                //
+                // a.k.a. s3 == rhs * 10^m ?
+                //
+                IntList rhs_expo_version ( s3.to_uint() * power(10,m) );
+                BOOST_CHECK( s3zs == rhs_expo_version );
+            }
         }
 #endif
 
         return s1zs + s2 + s3zs;  
     }
 }
-*/
-// **************** continue IntList conversion bellow **************************
-
 
 #ifdef BUILD_UNIT_TESTS
 
@@ -206,6 +331,16 @@ BOOST_AUTO_TEST_CASE( test_karatusba_multiplication )
     { IntList in1 (     9 ); IntList in2 (     4 ); IntList out (        36 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (    13 ); IntList in2 (     3 ); IntList out (        39 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (    12 ); IntList in2 (    12 ); IntList out (       144 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
+
+    {
+        IntList in1 (456);
+        IntList in2 (18);
+        IntList out (8208);
+
+        IntList ret = karatsuba(in1, in2);
+        BOOST_CHECK( ret == out );
+    }
+
     { IntList in1 (   456 ); IntList in2 (    18 ); IntList out (      8208 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (    18 ); IntList in2 (   456 ); IntList out (      8208 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (  1234 ); IntList in2 (  5678 ); IntList out (   7006652 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }

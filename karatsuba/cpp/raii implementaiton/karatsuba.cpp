@@ -331,16 +331,6 @@ BOOST_AUTO_TEST_CASE( test_karatusba_multiplication )
     { IntList in1 (     9 ); IntList in2 (     4 ); IntList out (        36 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (    13 ); IntList in2 (     3 ); IntList out (        39 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (    12 ); IntList in2 (    12 ); IntList out (       144 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
-
-    {
-        IntList in1 (456);
-        IntList in2 (18);
-        IntList out (8208);
-
-        IntList ret = karatsuba(in1, in2);
-        BOOST_CHECK( ret == out );
-    }
-
     { IntList in1 (   456 ); IntList in2 (    18 ); IntList out (      8208 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (    18 ); IntList in2 (   456 ); IntList out (      8208 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }
     { IntList in1 (  1234 ); IntList in2 (  5678 ); IntList out (   7006652 ); BOOST_CHECK( karatsuba( in1, in2 ) == out ); }

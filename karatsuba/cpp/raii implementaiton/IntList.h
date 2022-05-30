@@ -6,8 +6,6 @@
 // class declaration for integer list type (using RAII patterns)
 // (ex: an integer list for 0 is [0], 123 is [1,2,3], etc.)
 //
-// *** UNDER CONSTRUCTION !!! *** UNDER CONSTRUCTION !!! *** UNDER CONSTRUCTION !!! 
-//
 #ifndef __int_list_h
 #define __int_list_h
 

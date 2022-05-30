@@ -6,8 +6,6 @@
 // class definitions for integer list type (using RAII patterns)
 // (ex: an integer list for 0 is [0], 123 is [1,2,3], etc.)
 //
-// *** UNDER CONSTRUCTION !!! *** UNDER CONSTRUCTION !!! *** UNDER CONSTRUCTION !!! 
-//
 
 // use this define to run unit tests without externally-defined test runner
 #if defined(BUILD_INTLIST_UNIT_TEST_RUNNER)
